@@ -6,7 +6,7 @@ from PyQt6.QtGui import QFont
 
 
 class RulesWindow(QMainWindow):
-    """Window displaying the rules of the Wordle game."""
+    """Window displaying the rules of the Wordle game"""
 
     def __init__(self, user_id, is_admin, language):
         super().__init__()
