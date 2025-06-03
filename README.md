@@ -1,44 +1,44 @@
-# Wordle Game
+# Juego Wordle
 
-A PyQt6 implementation of the popular Wordle game with Supabase integration, supporting both English and Spanish languages.
+Una implementación en PyQt6 del popular juego Wordle con integración de Supabase, compatible con idiomas inglés y español.
 
-## Features
+## Características
 
-- Login and signup functionality
-- Password recovery
-- Multilingual support (English and Spanish)
-- Game rules page
-- Statistics tracking for users
-- Admin panel with enhanced statistics
-- Three hints per game
+- Funcionalidad de inicio de sesión y registro
+- Recuperación de contraseña
+- Soporte multiidioma (inglés y español)
+- Página de reglas del juego
+- Seguimiento de estadísticas para usuarios
+- Panel de administración con estadísticas mejoradas
+- Tres pistas por juego
 
-## Setup
+## Configuración
 
-1. Install the required dependencies:
+1. Instala las dependencias requeridas:
 ```
 pip install -r requirements.txt
 ```
 
-2. Set up Supabase credentials:
-Create a `.env` file in the root directory with the following variables:
+2. Configura las credenciales de Supabase:
+Crea un archivo `.env` en el directorio raíz con las siguientes variables:
 ```
-SUPABASE_URL=your_supabase_url
-SUPABASE_KEY=your_supabase_key
+SUPABASE_URL=tu_url_de_supabase
+SUPABASE_KEY=tu_clave_de_supabase
 ```
 
-3. Run the application:
+3. Ejecuta la aplicación:
 ```
 python main.py
 ```
 
-## Game Rules
+## Reglas del Juego
 
-Wordle is a word-guessing game where you have 6 attempts to guess a 5-letter word:
-- Green: Letter is in the word and in the correct position
-- Yellow: Letter is in the word but in the wrong position
-- Gray: Letter is not in the word
+Wordle es un juego de adivinar palabras donde tienes 6 intentos para adivinar una palabra de 5 letras:
+- Verde: La letra está en la palabra y en la posición correcta
+- Amarillo: La letra está en la palabra pero en la posición incorrecta
+- Gris: La letra no está en la palabra
 
-## Technologies Used
+## Tecnologías Utilizadas
 
 - Python 3.9+
 - PyQt6

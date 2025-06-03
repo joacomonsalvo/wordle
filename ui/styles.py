@@ -1,12 +1,13 @@
 from PyQt6.QtWidgets import QPushButton, QLineEdit
 from PyQt6.QtCore import Qt
 
+
 def create_styled_button(text, is_primary=True):
     """Create a styled button with modern design."""
     btn = QPushButton(text)
     btn.setMinimumHeight(40)
     btn.setCursor(Qt.CursorShape.PointingHandCursor)
-    
+
     if is_primary:
         btn.setStyleSheet("""
             QPushButton {
@@ -43,8 +44,9 @@ def create_styled_button(text, is_primary=True):
                 background-color: rgba(16, 163, 127, 0.2);
             }
         """)
-    
+
     return btn
+
 
 def create_styled_input(placeholder):
     """Create a styled input field with modern design."""
