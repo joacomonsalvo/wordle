@@ -195,6 +195,11 @@ class WordleGame(QMainWindow):
 
         # Get words from the database
         self.valid_words = get_words_for_game(language_name)
+        # Select a random target word from the valid words
+        if self.valid_words:
+            self.target_word = random.choice(self.valid_words).upper()
+        else:
+            self.target_word = "ERROR"  # Fallback in case no words are loaded
 
     def setup_ui(self):
         # Main widget and layout

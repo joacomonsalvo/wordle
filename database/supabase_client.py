@@ -182,7 +182,7 @@ def _get_idioma_id(language_name: str) -> int:
 # Helper function to get palabra_id from word string and idioma_id
 def _get_palabra_id(word_text: str, idioma_id: int) -> int:
     client = get_supabase_client()
-    result = client.table("palabras").select("id").eq("palabra", word_text).eq("idioma_id", idioma_id).execute()
+    result = client.table("palabras").select("id").eq("palabra", word_text.lower()).eq("idioma_id", idioma_id).execute()
     if not result.data or len(result.data) == 0:
         raise ValueError(f"Word '{word_text}' not found for language ID {idioma_id} in 'palabras' table.")
     return result.data[0]['id']
