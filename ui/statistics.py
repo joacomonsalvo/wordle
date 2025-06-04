@@ -31,13 +31,25 @@ class StatisticsWindow(QMainWindow):
         try:
             # Get user game results
             result = get_user_statistics(self.user_id)
-            self.game_results = result.data if result.data else []
+            # Check if result is a list directly or has a data attribute
+            if isinstance(result, list):
+                self.game_results = result
+            else:
+                self.game_results = result.data if result.data else []
             
             # Calculate derived statistics
             self.calculate_statistics()
         except Exception as e:
             print(f"Error loading statistics: {e}")
             self.game_results = []
+            
+            # Initialize stats to 0 to prevent attribute errors
+            self.total_games = 0
+            self.win_rate = 0
+            self.avg_time = 0
+            self.avg_attempts = 0
+            self.current_streak = 0
+            self.max_streak = 0
             
     def calculate_statistics(self):
         """Calculate derived statistics from game results."""

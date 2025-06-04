@@ -6,7 +6,7 @@ from PyQt6.QtGui import QFont
 from database.supabase_client import sign_out
 from ui.game import WordleGame
 from ui.statistics import StatisticsWindow
-from ui.admin_panel import AdminPanel
+from ui.admin import AdminWindow
 
 
 class HomeWindow(QMainWindow):
@@ -126,7 +126,7 @@ class HomeWindow(QMainWindow):
         if not self.is_admin:
             return
             
-        self.admin_panel = AdminPanel(self.user_id, self.language)
+        self.admin_panel = AdminWindow(self.user_id)
         self.hide()
         self.admin_panel.show()
     
