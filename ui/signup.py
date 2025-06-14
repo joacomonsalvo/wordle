@@ -19,8 +19,9 @@ class SignupWindow(QMainWindow):
         self.login_window = login_window
         super().__init__()
         self.setWindowTitle("Wordle")
-        self.setMinimumSize(400, 550)
-        self.setMaximumSize(800, 700)
+        # Fijar mismo tamaño que la ventana de login para consistencia
+        self.setMinimumSize(450, 700)
+        self.setMaximumSize(450, 700)
         
         # Center window on screen
         screen = QApplication.primaryScreen().geometry()
@@ -54,9 +55,14 @@ class SignupWindow(QMainWindow):
                 border-radius: 8px;
                 padding: 20px;
             }
+            QFrame QLabel {
+                margin: 0px;
+                padding: 0px;
+            }
         """)
         card_layout = QVBoxLayout()
-        card_layout.setSpacing(20)
+        card_layout.setSpacing(10)
+        card_layout.setContentsMargins(20, 20, 20, 20)
         card.setLayout(card_layout)
         
         # Title
@@ -65,22 +71,31 @@ class SignupWindow(QMainWindow):
         title_label.setStyleSheet("color: #10a37f;")
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
+        # Tagline
+        tagline_label = QLabel("Un juego lúdico de palabras que desafía tu ingenio y vocabulario en cada partida.")
+        tagline_label.setWordWrap(True)
+        tagline_label.setFont(QFont("SF Pro Display", 15))
+        tagline_label.setStyleSheet("color: #444444;")
+        tagline_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
         # Subtitle
-        subtitle = QLabel("Create your account")
+        subtitle = QLabel("Crea tu cuenta")
+        subtitle.setWordWrap(False)
+        subtitle.setWordWrap(True)
         subtitle.setFont(QFont("SF Pro Display", 16))
         subtitle.setStyleSheet("color: #666666;")
         subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         # Form
-        self.username_input = create_styled_input("Username")
-        self.email_input = create_styled_input("Email")
-        self.password_input = create_styled_input("Password")
+        self.username_input = create_styled_input("Nombre de usuario")
+        self.email_input = create_styled_input("Correo electrónico")
+        self.password_input = create_styled_input("Contraseña")
         self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
-        self.confirm_input = create_styled_input("Confirm Password")
+        self.confirm_input = create_styled_input("Confirmar contraseña")
         self.confirm_input.setEchoMode(QLineEdit.EchoMode.Password)
         
         # Sign up button
-        signup_btn = create_styled_button("Create account")
+        signup_btn = create_styled_button("Crear cuenta")
         signup_btn.clicked.connect(self.handle_signup)
         
         # Back to login section
@@ -89,9 +104,10 @@ class SignupWindow(QMainWindow):
         login_layout.setContentsMargins(0, 0, 0, 0)
         login_container.setLayout(login_layout)
         
-        login_text = QLabel("Already have an account?")
+        login_text = QLabel("¿Ya tienes una cuenta?")
+        login_text.setWordWrap(True)
         login_text.setStyleSheet("color: #666666;")
-        login_btn = QPushButton("Sign in")
+        login_btn = QPushButton("Iniciar sesión")
         login_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         login_btn.setStyleSheet("""
             QPushButton {
@@ -113,6 +129,8 @@ class SignupWindow(QMainWindow):
         
         # Add widgets to card layout
         card_layout.addWidget(title_label)
+        card_layout.addSpacing(5)
+        card_layout.addWidget(tagline_label)
         card_layout.addWidget(subtitle)
         card_layout.addSpacing(10)
         card_layout.addWidget(self.username_input)
@@ -132,32 +150,32 @@ class SignupWindow(QMainWindow):
         confirm = self.confirm_input.text()
         
         if not username or not password or not email:
-            self.show_error("Please fill in all fields: username, email, and password.")
+            self.show_error("Por favor completa todos los campos: nombre de usuario, correo y contraseña.")
             return
             
         # Basic email validation
         if '@' not in email or '.' not in email:
-            self.show_error("Please enter a valid email address.")
+            self.show_error("Ingresa un correo electrónico válido.")
             return
             
         if password != confirm:
-            self.show_error("Passwords do not match.")
+            self.show_error("Las contraseñas no coinciden.")
             return
             
         try:
             user = sign_up(username, password, email)
             
             if user:
-                QMessageBox.information(self, "Success", "Account created successfully! Please sign in.")
+                QMessageBox.information(self, "Excelente", "Cuenta creada exitosamente! Por favor inicia sesión.")
                 # Emit signal with user ID and admin status
                 self.signup_successful.emit(user["id"], user.get("is_admin", False))
                 self.close()
             else:
-                self.show_error("Failed to create account.")
+                self.show_error("No se pudo crear la cuenta.")
         except ValueError as e:
             self.show_error(str(e))
         except Exception as e:
-            self.show_error(f"An error occurred: {str(e)}")
+            self.show_error(f"Error al crear la cuenta: {str(e)}")
             
     def show_login(self):
         if self.login_window:
@@ -168,4 +186,4 @@ class SignupWindow(QMainWindow):
         QMessageBox.critical(self, "Error", message)
         
     def show_success(self, message):
-        QMessageBox.information(self, "Success", message)
+        QMessageBox.information(self, "Excelente", message)

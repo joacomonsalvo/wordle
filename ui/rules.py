@@ -46,9 +46,10 @@ class RulesWindow(QMainWindow):
         self.setCentralWidget(main_widget)
 
         # Title
-        title_label = QLabel("How to Play Wordle")
-        title_label.setFont(QFont("Arial", 20, QFont.Weight.Bold))
+        title_label = QLabel("How to Play Wordle" if self.language!="spanish" else "Cómo jugar Wordle")
+        title_label.setFont(QFont("Arial", 26, QFont.Weight.Bold))
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title_label.setStyleSheet("color: rgb(68,165,126);")
         main_layout.addWidget(title_label)
 
         # Scroll area for rules content
@@ -68,6 +69,7 @@ class RulesWindow(QMainWindow):
 
         # Continue button
         continue_btn = create_styled_button("Let's Play!")
+        continue_btn.setStyleSheet("QPushButton{background-color: rgb(68,165,126); color: white; padding:10px 18px; border:none; border-radius:6px; font-size:16px;} QPushButton:hover{background-color: rgb(58,145,110);}")
         continue_btn.setMinimumWidth(200)
         continue_btn.clicked.connect(self.proceed_to_home)
         main_layout.addWidget(continue_btn, alignment=Qt.AlignmentFlag.AlignCenter)
@@ -95,8 +97,11 @@ class RulesWindow(QMainWindow):
         ]
 
         for text, size in rules:
+            # prepend bullet for smaller text paragraphs
+            if size <= 14:
+                text = f"&#8226; {text}"
             label = QLabel(text)
-            label.setFont(QFont("Arial", size))
+            label.setFont(QFont("Arial", size+2))
             label.setWordWrap(True)
             label.setTextFormat(Qt.TextFormat.RichText)
             layout.addWidget(label)
@@ -127,8 +132,11 @@ class RulesWindow(QMainWindow):
         ]
 
         for text, size in rules:
+            # prepend bullet for smaller text paragraphs
+            if size <= 14:
+                text = f"&#8226; {text}"
             label = QLabel(text)
-            label.setFont(QFont("Arial", size))
+            label.setFont(QFont("Arial", size+2))
             label.setWordWrap(True)
             label.setTextFormat(Qt.TextFormat.RichText)
             layout.addWidget(label)

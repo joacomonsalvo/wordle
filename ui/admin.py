@@ -1,10 +1,17 @@
-from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QLabel, QGroupBox, QApplication, QPushButton, QHBoxLayout)
+from PyQt6.QtWidgets import (
+    QWidget, QVBoxLayout, QLabel, QApplication, QPushButton, QHBoxLayout,
+    QTableWidget, QTableWidgetItem, QHeaderView
+)
+
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont
 
-from database.supabase_client import get_all_statistics, get_language_distribution, get_hardest_words, sign_out
+from database.supabase_client import get_all_statistics, sign_out
 from ui.styles import create_styled_button
 
+
+import csv
+from PyQt6.QtWidgets import QFileDialog
 
 class AdminWindow(QWidget):
     logoutRequested = pyqtSignal() # Signal to request showing the login page
@@ -17,65 +24,83 @@ class AdminWindow(QWidget):
         self.setup_ui()
 
     def setup_ui(self):
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.setSpacing(20)
+        """Set up the unified statistics UI."""
+        # Main layout
+        main_layout = QVBoxLayout(self)
 
-        # Title
-        title_label = QLabel("Admin Statistics Panel")
-        title_label.setStyleSheet("font-size: 24px; font-weight: bold; color: #333;")
-        layout.addWidget(title_label)
-
-        # Overall Statistics
-        overall_group = QGroupBox("Overall Statistics")
-        overall_layout = QVBoxLayout()
-        self.overall_stats = QLabel("Loading overall statistics...")
-        self.overall_stats.setStyleSheet("font-size: 14px; color: #555;")
-        overall_layout.addWidget(self.overall_stats)
-        overall_group.setLayout(overall_layout)
-        overall_group.setStyleSheet("QGroupBox { font-weight: bold; font-size: 16px; } QGroupBox::title { color: #2c3e50; }")
-        layout.addWidget(overall_group)
-
-        # Language Distribution
-        lang_group = QGroupBox("Language Distribution (%)")
-        lang_layout = QVBoxLayout()
-        self.lang_dist = QLabel("Loading language distribution...")
-        self.lang_dist.setStyleSheet("font-size: 14px; color: #555;")
-        lang_layout.addWidget(self.lang_dist)
-        lang_group.setLayout(lang_layout)
-        lang_group.setStyleSheet("QGroupBox { font-weight: bold; font-size: 16px; } QGroupBox::title { color: #2c3e50; }")
-        layout.addWidget(lang_group)
-
-        # Hardest Words
-        hardest_group = QGroupBox("Top 3 Hardest Words per Language")
-        hardest_layout = QVBoxLayout()
-        self.hardest_words = QLabel("Loading hardest words...")
-        self.hardest_words.setStyleSheet("font-size: 14px; color: #555;")
-        hardest_layout.addWidget(self.hardest_words)
-        hardest_group.setLayout(hardest_layout)
-        hardest_group.setStyleSheet("QGroupBox { font-weight: bold; font-size: 16px; } QGroupBox::title { color: #2c3e50; }")
-        layout.addWidget(hardest_group)
-
-        # Add a stretch to push content to the top before the button
-        layout.addStretch(1)
-
-        # Create a container for the logout button to align it to the right
-        button_container = QWidget()
-        button_layout = QHBoxLayout(button_container)
-        button_layout.setContentsMargins(0, 15, 0, 0)
-        button_layout.addStretch()
-
-        # Create logout button with the same style as in User Home UI
+        # Create logout button early so it's available for header
         self.logout_button = create_styled_button("Log Out", is_primary=False)
+        self.logout_button.setStyleSheet("background-color: rgb(68,165,126); color: white; border: none; padding:6px 12px; border-radius:5px;")
         self.logout_button.setCursor(Qt.CursorShape.PointingHandCursor)
         self.logout_button.clicked.connect(self.handle_logout)
-        button_layout.addWidget(self.logout_button)
-        
-        # Add the button container to the main layout
-        layout.addWidget(button_container)
+        main_layout.setContentsMargins(20, 20, 20, 20)
+        main_layout.setSpacing(15)
 
-        # Apply a clean style to the window
-        self.setStyleSheet("background-color: #f5f5f5;") # Keep existing window style
+        # Header with title and (optional) logout button
+        header_widget = QWidget()
+        header_layout = QHBoxLayout()
+        header_widget.setLayout(header_layout)
+
+        title_label = QLabel("Estadísticas de Administración")
+        title_label.setStyleSheet("font-size: 24px; font-weight: bold; color: #333;")
+
+        header_layout.addWidget(title_label)
+        header_layout.addStretch()
+        header_layout.addWidget(self.logout_button)
+
+        main_layout.addWidget(header_widget)
+
+        # Summary statistics container
+        summary_widget = QWidget()
+        summary_layout = QHBoxLayout()
+        summary_widget.setLayout(summary_layout)
+
+        # Create stat widgets (placeholders until `update_ui_with_stats` runs)
+        self.games_played_label = self.create_stat_widget("Juegos Totales", "0")
+        self.games_en_label = self.create_stat_widget("Partidas en Inglés", "0.0%")
+        self.games_es_label = self.create_stat_widget("Partidas en Español", "0.0%")
+        self.win_rate_label = self.create_stat_widget("Tasa de Victoria", "0.0%")
+        self.avg_time_label = self.create_stat_widget("Tiempo Prom.", "0.0s")
+        self.avg_attempts_label = self.create_stat_widget("Intentos Prom.", "0.0")
+
+        summary_layout.addWidget(self.games_played_label)
+        summary_layout.addWidget(self.games_en_label)
+        summary_layout.addWidget(self.games_es_label)
+        summary_layout.addWidget(self.win_rate_label)
+        summary_layout.addWidget(self.avg_time_label)
+        summary_layout.addWidget(self.avg_attempts_label)
+
+        main_layout.addWidget(summary_widget)
+
+        # Game history label
+        history_title = QLabel("Game History")
+        history_title.setStyleSheet("font-size: 18px; font-weight: bold; color: #333;")
+        main_layout.addWidget(history_title)
+
+        # Game history table
+        self.history_table = QTableWidget()
+        self.setup_history_table()
+        # Action buttons for export and link
+        action_layout = QHBoxLayout()
+        export_btn = create_styled_button("Exportar CSV", is_primary=False)
+        export_btn.setStyleSheet("background-color: rgb(68,165,126); color: white; border: none; padding:6px 12px; border-radius:5px;")
+        export_btn.clicked.connect(self.export_csv)
+        link_btn = create_styled_button("Copiar enlace Looker", is_primary=False)
+        link_btn.setStyleSheet("background-color: rgb(68,165,126); color: white; border: none; padding:6px 12px; border-radius:5px;")
+        link_btn.clicked.connect(self.copy_looker_link)
+        action_layout.addWidget(export_btn)
+        action_layout.addWidget(link_btn)
+        action_widget = QWidget()
+        action_widget.setLayout(action_layout)
+        main_layout.addWidget(self.history_table)
+        main_layout.addWidget(action_widget)
+
+        # Stretch at the end
+        main_layout.addStretch()
+
+        # Style
+        self.setStyleSheet("background-color: #f5f5f5;")
+
 
         # Load statistics
         self.load_statistics()
@@ -97,92 +122,144 @@ class AdminWindow(QWidget):
             print(f"Error during logout: {e}")
 
     def load_statistics(self):
+        """Fetch and process statistics for all users."""
         try:
-            overall_data = get_all_statistics()
-            language_data = get_language_distribution()
-            hardest_words_data = get_hardest_words(None)  # Pass None to get all languages
-            self.update_statistics(overall_data, language_data, hardest_words_data)
+            self.game_results = get_all_statistics()
+            self.calculate_statistics()
+            self.update_ui_with_stats()
         except Exception as e:
-            self.overall_stats.setText(f"Could not load overall statistics: {str(e)}")
-            self.lang_dist.setText(f"Could not load language distribution: {str(e)}")
-            self.hardest_words.setText(f"Could not load hardest words: {str(e)}")
+            print(f"Error loading admin statistics: {e}")
+            self.game_results = []
 
-    def update_statistics(self, overall_data, language_data, hardest_words_data):
-        # --- Update overall statistics ---
-        actual_overall_data = {}
-        if isinstance(overall_data, list) and overall_data:
-            actual_overall_data = overall_data[0]  # Assuming the first item is the stats dict
-        elif isinstance(overall_data, dict):
-            actual_overall_data = overall_data
 
-        overall_text = f"Total Games Played: {actual_overall_data.get('total_games', 0)}\n"
-        overall_text += f"Average Attempts: {actual_overall_data.get('avg_attempts', 0):.2f}\n"
-        overall_text += f"Win Rate: {actual_overall_data.get('win_rate', 0):.2f}%"
-        self.overall_stats.setText(overall_text)
+    # ----------------------------- NEW METHODS -----------------------------
+    def calculate_statistics(self):
+        """Compute summary metrics from the game list."""
+        self.total_games = len(self.game_results)
 
-        # --- Update language distribution ---
-        lang_counts = {'es': 0, 'en': 0}
-        if isinstance(language_data, list):
-            for item in language_data:
-                # Prioritize idioma_id if available
-                lang_id_val = item.get('idioma_id')
-                game_count = item.get('game_count', item.get('count', 0)) # Check for 'count' as well
+        # Language distribution counts
+        lang_counts = {"english": 0, "spanish": 0}
+        total_time = 0
+        total_attempts = 0
+        wins = 0
 
-                if lang_id_val == 1: # Spanish from idioma_id
-                    lang_counts['es'] = game_count
-                elif lang_id_val == 2: # English from idioma_id
-                    lang_counts['en'] = game_count
-                else: # Fallback to language_name if idioma_id is not present or different
-                    lang_name = str(item.get('language_name', '')).lower()
-                    if lang_name == 'spanish' or lang_name == 'es':
-                        lang_counts['es'] = game_count
-                    elif lang_name == 'english' or lang_name == 'en':
-                        lang_counts['en'] = game_count
+        for g in self.game_results:
+            lang = g.get("language", "").lower()
+            if lang in ("english", "en"):
+                lang_counts["english"] += 1
+            elif lang in ("spanish", "es", "español"):
+                lang_counts["spanish"] += 1
 
-        elif isinstance(language_data, dict): # If it's already in {'es': X, 'en': Y} format
-            lang_counts['es'] = language_data.get('es', 0)
-            lang_counts['en'] = language_data.get('en', 0)
+            total_time += g.get("time_taken", 0)
+            # Count attempts for every game
+            total_attempts += g.get("attempts", 0)
+            if g.get("win", False):
+                wins += 1
 
-        total_games_by_lang = sum(lang_counts.values())
-        if total_games_by_lang > 0:
-            es_percentage = (lang_counts.get('es', 0) / total_games_by_lang) * 100
-            en_percentage = (lang_counts.get('en', 0) / total_games_by_lang) * 100
-            lang_text = f"Spanish: {es_percentage:.2f}% ({lang_counts.get('es',0)} games)\nEnglish: {en_percentage:.2f}% ({lang_counts.get('en',0)} games)"
-        else:
-            lang_text = "Spanish: 0.00% (0 games)\nEnglish: 0.00% (0 games)"
-        self.lang_dist.setText(lang_text)
+        # Percentages
+        self.en_pct = (lang_counts["english"] / self.total_games * 100) if self.total_games else 0
+        self.es_pct = (lang_counts["spanish"] / self.total_games * 100) if self.total_games else 0
+        self.win_rate = (wins / self.total_games * 100) if self.total_games else 0
+        self.avg_time = (total_time / self.total_games) if self.total_games else 0
+        self.avg_attempts = (total_attempts / self.total_games) if self.total_games else 0
 
-        # --- Update hardest words ---
-        grouped_hardest_words = {'es': [], 'en': []}
-        if isinstance(hardest_words_data, list):
-            for item in hardest_words_data:
-                lang_code = str(item.get('language', '')).lower() # Expecting 'language' key with 'es' or 'en'
-                if lang_code == 'es':
-                    grouped_hardest_words['es'].append(item)
-                elif lang_code == 'en':
-                    grouped_hardest_words['en'].append(item)
-        elif isinstance(hardest_words_data, dict): # If already in {'es': [...], 'en': [...]} format
-            grouped_hardest_words = hardest_words_data
+    def update_ui_with_stats(self):
+        """Populate the stat widgets and history table with computed data."""
+        # Update stat widgets
+        self.set_stat_value(self.games_played_label, str(self.total_games))
+        self.set_stat_value(self.games_en_label, f"{self.en_pct:.1f}%")
+        self.set_stat_value(self.games_es_label, f"{self.es_pct:.1f}%")
+        self.set_stat_value(self.win_rate_label, f"{self.win_rate:.1f}%")
+        self.set_stat_value(self.avg_time_label, f"{self.avg_time:.1f}s")
+        self.set_stat_value(self.avg_attempts_label, f"{self.avg_attempts:.1f}")
 
-        hardest_text = "Spanish:\n"
-        # Sort by avg_attempts descending, then take top 3
-        es_words = sorted(grouped_hardest_words.get('es', []), key=lambda x: x.get('avg_attempts', 0), reverse=True)
-        if es_words:
-            for i, word_info in enumerate(es_words[:3], 1):
-                hardest_text += f"  {i}. {word_info.get('word', 'N/A')} (Avg Attempts: {word_info.get('avg_attempts', 0):.2f})\n"
-        else:
-            hardest_text += "  No data available.\n"
-        
-        hardest_text += "\nEnglish:\n"
-        # Sort by avg_attempts descending, then take top 3
-        en_words = sorted(grouped_hardest_words.get('en', []), key=lambda x: x.get('avg_attempts', 0), reverse=True)
-        if en_words:
-            for i, word_info in enumerate(en_words[:3], 1):
-                hardest_text += f"  {i}. {word_info.get('word', 'N/A')} (Avg Attempts: {word_info.get('avg_attempts', 0):.2f})\n"
-        else:
-            hardest_text += "  No data available.\n"
-            
-        self.hardest_words.setText(hardest_text.strip())
+        # Fill history table
+        self.history_table.setRowCount(len(self.game_results))
+        for row, game in enumerate(sorted(self.game_results, key=lambda g: g.get("created_at", ""), reverse=True)):
+            # User
+            user_item = QTableWidgetItem(game.get("username", "Unknown"))
+            self.history_table.setItem(row, 0, user_item)
+
+            # Word
+            word_item = QTableWidgetItem(game.get("word", ""))
+            self.history_table.setItem(row, 1, word_item)
+
+            # Language
+            lang = game.get("language", "")
+            lang_display = "Español" if lang == "spanish" else "English"
+            lang_item = QTableWidgetItem(lang_display)
+            self.history_table.setItem(row, 2, lang_item)
+
+            # Attempts
+            attempts_item = QTableWidgetItem(str(game.get("attempts", 0)))
+            self.history_table.setItem(row, 3, attempts_item)
+
+            # Time
+            time_item = QTableWidgetItem(f"{game.get('time_taken', 0):.1f}s")
+            self.history_table.setItem(row, 4, time_item)
+
+            # Result
+            result_text = "Victoria" if game.get("win", False) else "Derrota"
+            result_item = QTableWidgetItem(result_text)
+            self.history_table.setItem(row, 5, result_item)
+
+            # Hints Used
+            hints_item = QTableWidgetItem(str(game.get("hints_used", 0)))
+            self.history_table.setItem(row, 6, hints_item)
+
+    # ----------------------------- Export / Link Methods -----------------------------
+    def export_csv(self):
+        path, _ = QFileDialog.getSaveFileName(self, "Guardar CSV", "estadisticas.csv", "CSV Files (*.csv)")
+        if not path:
+            return
+        try:
+            with open(path, "w", newline="", encoding="utf-8") as f:
+                writer = csv.writer(f)
+                # headers
+                writer.writerow(["usuario", "palabra", "idioma", "intentos", "tiempo", "resultado", "pistas"])
+                for g in self.game_results:
+                    writer.writerow([
+                        g.get("username", ""),
+                        g.get("word", ""),
+                        g.get("language", ""),
+                        g.get("attempts", 0),
+                        g.get("time_taken", 0),
+                        "victoria" if g.get("win", False) else "derrota",
+                        g.get("hints_used", 0)
+                    ])
+        except Exception as e:
+            print(f"Error exporting CSV: {e}")
+
+    def copy_looker_link(self):
+        link = "https://looker.google.com/your-dashboard-link"
+        QApplication.clipboard().setText(link)
+
+    # ----------------------------- UI HELPERS -----------------------------
+    def create_stat_widget(self, title: str, value: str) -> QWidget:
+        widget = QWidget()
+        layout = QVBoxLayout()
+        widget.setLayout(layout)
+        value_label = QLabel(value)
+        value_label.setFont(QFont("Arial", 20, QFont.Weight.Bold))
+        value_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title_label = QLabel(title)
+        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(value_label)
+        layout.addWidget(title_label)
+        return widget
+
+    def set_stat_value(self, widget: QWidget, value: str):
+        # Assumes first child widget is the value QLabel
+        value_label: QLabel = widget.layout().itemAt(0).widget()
+        value_label.setText(value)
+
+    def setup_history_table(self):
+        headers = ["Usuario", "Palabra", "Idioma", "Intentos", "Tiempo", "Resultado", "Pistas"]
+        self.history_table.setColumnCount(len(headers))
+        self.history_table.setHorizontalHeaderLabels(headers)
+        self.history_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        # End setup; legacy code below is skipped
+        return
 
 
 if __name__ == "__main__":

@@ -16,7 +16,7 @@ class PasswordResetDialog(QDialog):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Reset Password")
+        self.setWindowTitle("Restablecer Contraseña")
         self.setMinimumWidth(300)
         self.setup_ui()
 
@@ -26,25 +26,25 @@ class PasswordResetDialog(QDialog):
         layout.setSpacing(10)
 
         # Username input
-        username_label = QLabel("Username:")
-        self.username_input = create_styled_input("Enter your username")
+        username_label = QLabel("Nombre de usuario:")
+        self.username_input = create_styled_input("Ingresa tu nombre de usuario")
 
         # New password input
-        password_label = QLabel("New Password:")
-        self.password_input = create_styled_input("Enter new password")
+        password_label = QLabel("Contraseña nueva:")
+        self.password_input = create_styled_input("Ingresa tu nueva contraseña")
         self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
 
         # Confirm password input
-        confirm_label = QLabel("Confirm Password:")
-        self.confirm_input = create_styled_input("Confirm new password")
+        confirm_label = QLabel("Confirmar contraseña nueva:")
+        self.confirm_input = create_styled_input("Confirma tu nueva contraseña")
         self.confirm_input.setEchoMode(QLineEdit.EchoMode.Password)
 
         # Reset button
-        reset_btn = create_styled_button("Reset Password")
+        reset_btn = create_styled_button("Restablecer contraseña")
         reset_btn.clicked.connect(self.reset_password)
 
         # Add widgets to layout
-        layout.addWidget(QLabel("Enter your username and new password"))
+        layout.addWidget(QLabel("Ingresa tu nombre de usuario y tu nueva contraseña"))
         layout.addWidget(username_label)
         layout.addWidget(self.username_input)
         layout.addWidget(password_label)
@@ -61,11 +61,11 @@ class PasswordResetDialog(QDialog):
         confirm = self.confirm_input.text()
 
         if not username or not password or not confirm:
-            QMessageBox.warning(self, "Input Error", "Please fill in all fields.")
+            QMessageBox.warning(self, "Error", "Por favor completa todos los campos.")
             return
 
         if password != confirm:
-            QMessageBox.warning(self, "Input Error", "Passwords do not match.")
+            QMessageBox.warning(self, "Error", "Las contraseñas no coinciden.")
             return
 
         try:
@@ -74,12 +74,12 @@ class PasswordResetDialog(QDialog):
             reset_user_password(username, password)
             QMessageBox.information(
                 self,
-                "Password Reset",
-                "Your password has been successfully reset. You can now log in with your new password."
+                "Excelente",
+                "Tu contraseña ha sido restablecida exitosamente. Ahora puedes iniciar sesión con tu nueva contraseña."
             )
             self.accept()
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"An error occurred: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Error al restablecer la contraseña: {str(e)}")
 
 
 class LoginWindow(QMainWindow):
@@ -88,8 +88,9 @@ class LoginWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Wordle")
-        self.setMinimumSize(400, 500)
-        self.setMaximumSize(800, 650)
+        # Fijar tamaño de ventana uniforme para evitar recortes
+        self.setMinimumSize(450, 700)
+        self.setMaximumSize(450, 700)
 
         # Center window on screen
         screen = QApplication.primaryScreen().geometry()
@@ -123,9 +124,14 @@ class LoginWindow(QMainWindow):
                 border-radius: 8px;
                 padding: 20px;
             }
+            QFrame QLabel {
+                margin: 0px;
+                padding: 0px;
+            }
         """)
         card_layout = QVBoxLayout()
         card_layout.setSpacing(20)
+        card_layout.setContentsMargins(20, 20, 20, 20)
         card.setLayout(card_layout)
 
         # Title
@@ -134,19 +140,26 @@ class LoginWindow(QMainWindow):
         title_label.setStyleSheet("color: #10a37f;")
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
+        # Tagline
+        tagline_label = QLabel("Un juego lúdico de palabras que desafía tu ingenio y vocabulario en cada partida.")
+        tagline_label.setWordWrap(True)
+        tagline_label.setFont(QFont("SF Pro Display", 15))
+        tagline_label.setStyleSheet("color: #444444;")
+        tagline_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
         # Subtitle
-        subtitle = QLabel("Welcome back")
-        subtitle.setFont(QFont("SF Pro Display", 16))
+        subtitle = QLabel("Bienvenido de nuevo")
+        subtitle.setFont(QFont("SF Pro Display", 15))
         subtitle.setStyleSheet("color: #666666;")
         subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         # Login form
-        self.username_input = create_styled_input("Username")
-        self.password_input = create_styled_input("Password")
+        self.username_input = create_styled_input("Nombre de usuario")
+        self.password_input = create_styled_input("Contraseña")
         self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
 
         # Login button
-        login_btn = create_styled_button("Sign in")
+        login_btn = create_styled_button("Iniciar sesión")
         login_btn.clicked.connect(self.handle_login)
 
         # Sign up section
@@ -155,9 +168,9 @@ class LoginWindow(QMainWindow):
         signup_layout.setContentsMargins(0, 0, 0, 0)
         signup_container.setLayout(signup_layout)
 
-        signup_text = QLabel("Don't have an account?")
+        signup_text = QLabel("¿No tienes una cuenta?")
         signup_text.setStyleSheet("color: #666666;")
-        signup_btn = QPushButton("Sign up")
+        signup_btn = QPushButton("Regístrate")
         signup_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         signup_btn.setStyleSheet("""
             QPushButton {
@@ -178,7 +191,7 @@ class LoginWindow(QMainWindow):
         signup_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         # Forgot password button
-        forgot_btn = QPushButton("Forgot password?")
+        forgot_btn = QPushButton("¿Olvidaste tu contraseña?")
         forgot_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         forgot_btn.setStyleSheet("""
             QPushButton {
@@ -197,6 +210,8 @@ class LoginWindow(QMainWindow):
 
         # Add widgets to card layout
         card_layout.addWidget(title_label)
+        card_layout.addSpacing(5) # Reduce spacing between title and tagline
+        card_layout.addWidget(tagline_label)
         card_layout.addWidget(subtitle)
         card_layout.addSpacing(10)
         card_layout.addWidget(self.username_input)
@@ -213,7 +228,7 @@ class LoginWindow(QMainWindow):
         password = self.password_input.text()
 
         if not username or not password:
-            self.show_error("Please enter both username and password.")
+            self.show_error("Por favor ingresa nombre de usuario y contraseña.")
             return
 
         try:
@@ -231,7 +246,7 @@ class LoginWindow(QMainWindow):
                     # Regular users go to language selection
                     self.show_language_selection()
             else:
-                self.show_error("Invalid username or password.")
+                self.show_error("Nombre de usuario o contraseña inválidos.")
         except ValueError as e:
             self.show_error(str(e))
         except Exception as e:

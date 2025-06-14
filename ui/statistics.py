@@ -1,9 +1,10 @@
 from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
-                             QPushButton, QTableWidget, QTableWidgetItem, QHeaderView)
+                             QPushButton, QTableWidget, QTableWidgetItem, QHeaderView, QFileDialog, QApplication)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
+import csv
 
-from database.supabase_client import get_user_statistics
+from database.supabase_client import get_user_statistics, get_user_profile
 
 
 class StatisticsWindow(QMainWindow):
@@ -14,6 +15,12 @@ class StatisticsWindow(QMainWindow):
         self.user_id = user_id
         self.is_admin = is_admin
         self.language = language
+        # Fetch username for CSV export
+        try:
+            profile = get_user_profile(user_id)
+            self.username = profile.get("nombre_usuario", "")
+        except Exception:
+            self.username = ""
         
         # Set window properties
         title = "Estadísticas" if language == "spanish" else "Statistics"
@@ -66,6 +73,18 @@ class StatisticsWindow(QMainWindow):
         # Sort games by creation date
         sorted_games = sorted(self.game_results, key=lambda g: g.get("created_at", ""))
         
+        # Language counts
+        lang_counts = {"english": 0, "spanish": 0}
+        for g in self.game_results:
+            lang = g.get("language", "").lower()
+            if lang in ("english", "en"):
+                lang_counts["english"] += 1
+            elif lang in ("spanish", "es", "español"):
+                lang_counts["spanish"] += 1
+
+        self.en_pct = (lang_counts["english"] / self.total_games * 100) if self.total_games else 0
+        self.es_pct = (lang_counts["spanish"] / self.total_games * 100) if self.total_games else 0
+
         # Calculate win rate
         wins = sum(1 for g in self.game_results if g.get("win", False))
         self.win_rate = (wins / self.total_games) * 100 if self.total_games > 0 else 0
@@ -74,24 +93,10 @@ class StatisticsWindow(QMainWindow):
         total_time = sum(g.get("time_taken", 0) for g in self.game_results)
         self.avg_time = total_time / self.total_games if self.total_games > 0 else 0
         
-        # Calculate average attempts for wins
-        winning_games = [g for g in self.game_results if g.get("win", False)]
-        total_attempts = sum(g.get("attempts", 0) for g in winning_games)
-        self.avg_attempts = total_attempts / len(winning_games) if winning_games else 0
+        total_attempts = sum(g.get("attempts", 0) for g in self.game_results)
+        self.avg_attempts = total_attempts / self.total_games if self.total_games else 0
         
-        # Calculate streaks
-        current_streak = 0
-        max_streak = 0
-        
-        for game in sorted_games:
-            if game.get("win", False):
-                current_streak += 1
-                max_streak = max(max_streak, current_streak)
-            else:
-                current_streak = 0
-                
-        self.current_streak = current_streak
-        self.max_streak = max_streak
+
         
     def setup_ui(self):
         # Main widget and layout
@@ -105,7 +110,7 @@ class StatisticsWindow(QMainWindow):
         header_layout = QHBoxLayout()
         header.setLayout(header_layout)
         
-        back_btn = QPushButton("Back to Home")
+        back_btn = QPushButton("Back to Home" if self.language!="spanish" else "Volver")
         back_btn.clicked.connect(self.back_to_home)
         
         if self.language == "spanish":
@@ -115,12 +120,11 @@ class StatisticsWindow(QMainWindow):
             
         title_label = QLabel(title_text)
         title_label.setFont(QFont("Arial", 20, QFont.Weight.Bold))
-        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
         
-        header_layout.addWidget(back_btn)
-        header_layout.addStretch()
         header_layout.addWidget(title_label)
         header_layout.addStretch()
+        header_layout.addWidget(back_btn)
         
         # Summary statistics
         summary_widget = QWidget()
@@ -131,22 +135,22 @@ class StatisticsWindow(QMainWindow):
         if self.language == "spanish":
             games_label = self.create_stat_widget("Partidas", str(self.total_games))
             win_rate_label = self.create_stat_widget("% Victoria", f"{self.win_rate:.1f}%")
-            streak_label = self.create_stat_widget("Racha Actual", str(self.current_streak))
-            max_streak_label = self.create_stat_widget("Racha Máxima", str(self.max_streak))
+            en_label = self.create_stat_widget("Partidas en Inglés", f"{self.en_pct:.1f}%")
+            es_label = self.create_stat_widget("Partidas en Español", f"{self.es_pct:.1f}%")
             avg_time_label = self.create_stat_widget("Tiempo Promedio", f"{self.avg_time:.1f}s")
             avg_attempts_label = self.create_stat_widget("Intentos Promedio", f"{self.avg_attempts:.1f}")
         else:
             games_label = self.create_stat_widget("Games Played", str(self.total_games))
             win_rate_label = self.create_stat_widget("Win Rate", f"{self.win_rate:.1f}%")
-            streak_label = self.create_stat_widget("Current Streak", str(self.current_streak))
-            max_streak_label = self.create_stat_widget("Max Streak", str(self.max_streak))
+            en_label = self.create_stat_widget("Games in English", f"{self.en_pct:.1f}%")
+            es_label = self.create_stat_widget("Games in Spanish", f"{self.es_pct:.1f}%")
             avg_time_label = self.create_stat_widget("Avg Time", f"{self.avg_time:.1f}s")
             avg_attempts_label = self.create_stat_widget("Avg Attempts", f"{self.avg_attempts:.1f}")
             
         summary_layout.addWidget(games_label)
+        summary_layout.addWidget(en_label)
+        summary_layout.addWidget(es_label)
         summary_layout.addWidget(win_rate_label)
-        summary_layout.addWidget(streak_label)
-        summary_layout.addWidget(max_streak_label)
         summary_layout.addWidget(avg_time_label)
         summary_layout.addWidget(avg_attempts_label)
         
@@ -161,11 +165,22 @@ class StatisticsWindow(QMainWindow):
         self.history_table = QTableWidget()
         self.setup_history_table()
         
+        # Action buttons for export/link
+        action_layout = QHBoxLayout()
+        export_btn = QPushButton("Exportar CSV" if self.language=="spanish" else "Export CSV")
+        export_btn.clicked.connect(self.export_csv)
+        link_btn = QPushButton("Copiar enlace Looker" if self.language=="spanish" else "Copy Looker Link")
+        link_btn.clicked.connect(self.copy_looker_link)
+        action_layout.addWidget(export_btn)
+        action_layout.addWidget(link_btn)
+        action_widget = QWidget()
+        action_widget.setLayout(action_layout)
         # Add widgets to main layout
         main_layout.addWidget(header)
         main_layout.addWidget(summary_widget)
         main_layout.addWidget(history_label)
         main_layout.addWidget(self.history_table)
+        main_layout.addWidget(action_widget)
         
     def create_stat_widget(self, title, value):
         """Create a widget displaying a statistic with title and value."""
@@ -175,10 +190,10 @@ class StatisticsWindow(QMainWindow):
         
         value_label = QLabel(value)
         value_label.setFont(QFont("Arial", 20, QFont.Weight.Bold))
-        value_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        value_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
         
         title_label = QLabel(title)
-        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
         
         layout.addWidget(value_label)
         layout.addWidget(title_label)
@@ -189,9 +204,9 @@ class StatisticsWindow(QMainWindow):
         """Set up the game history table."""
         # Set up columns
         if self.language == "spanish":
-            headers = ["Fecha", "Palabra", "Idioma", "Intentos", "Tiempo", "Resultado", "Pistas Usadas"]
+            headers = ["Palabra", "Idioma", "Intentos", "Tiempo", "Resultado", "Pistas Usadas"]
         else:
-            headers = ["Date", "Word", "Language", "Attempts", "Time", "Result", "Hints Used"]
+            headers = ["Word", "Language", "Attempts", "Time", "Result", "Hints Used"]
             
         self.history_table.setColumnCount(len(headers))
         self.history_table.setHorizontalHeaderLabels(headers)
@@ -201,27 +216,23 @@ class StatisticsWindow(QMainWindow):
         self.history_table.setRowCount(len(self.game_results))
         
         for row, game in enumerate(sorted(self.game_results, key=lambda g: g.get("created_at", ""), reverse=True)):
-            # Date
-            date_item = QTableWidgetItem(game.get("created_at", "")[:10])
-            self.history_table.setItem(row, 0, date_item)
-            
             # Word
             word_item = QTableWidgetItem(game.get("word", ""))
-            self.history_table.setItem(row, 1, word_item)
+            self.history_table.setItem(row, 0, word_item)
             
             # Language
             lang = game.get("language", "")
             lang_display = "Español" if lang == "spanish" else "English"
             lang_item = QTableWidgetItem(lang_display)
-            self.history_table.setItem(row, 2, lang_item)
+            self.history_table.setItem(row, 1, lang_item)
             
             # Attempts
             attempts_item = QTableWidgetItem(str(game.get("attempts", 0)))
-            self.history_table.setItem(row, 3, attempts_item)
+            self.history_table.setItem(row, 2, attempts_item)
             
             # Time
             time_item = QTableWidgetItem(f"{game.get('time_taken', 0):.1f}s")
-            self.history_table.setItem(row, 4, time_item)
+            self.history_table.setItem(row, 3, time_item)
             
             # Result
             if self.language == "spanish":
@@ -230,12 +241,39 @@ class StatisticsWindow(QMainWindow):
                 result_text = "Win" if game.get("win", False) else "Loss"
                 
             result_item = QTableWidgetItem(result_text)
-            self.history_table.setItem(row, 5, result_item)
+            self.history_table.setItem(row, 4, result_item)
             
             # Hints Used
             hints_item = QTableWidgetItem(str(game.get("hints_used", 0)))
-            self.history_table.setItem(row, 6, hints_item)
+            self.history_table.setItem(row, 5, hints_item)
             
+        # ----------------------------- Export / Link Methods -----------------------------
+    def export_csv(self):
+        default_name = "estadisticas.csv" if self.language=="spanish" else "statistics.csv"
+        path, _ = QFileDialog.getSaveFileName(self, "Guardar CSV" if self.language=="spanish" else "Save CSV", default_name, "CSV Files (*.csv)")
+        if not path:
+            return
+        try:
+            with open(path, "w", newline="", encoding="utf-8") as f:
+                writer = csv.writer(f)
+                writer.writerow(["usuario","palabra","idioma","intentos","tiempo","resultado","pistas"] if self.language=="spanish" else ["user","word","language","attempts","time","result","hints"])
+                for g in self.game_results:
+                    writer.writerow([
+                        self.username,
+                        g.get("word",""),
+                        g.get("language",""),
+                        g.get("attempts",0),
+                        g.get("time_taken",0),
+                        ("victoria" if g.get("win",False) else "derrota") if self.language=="spanish" else ("win" if g.get("win",False) else "loss"),
+                        g.get("hints_used",0)
+                    ])
+        except Exception as e:
+            print(f"Error exporting CSV: {e}")
+
+    def copy_looker_link(self):
+        link = "https://looker.google.com/your-dashboard-link"
+        QApplication.clipboard().setText(link)
+
     def back_to_home(self):
         """Return to the home screen."""
         from ui.home import HomeWindow

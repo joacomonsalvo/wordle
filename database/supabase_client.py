@@ -260,13 +260,12 @@ def get_user_statistics(user_id: int) -> list:
             formatted_data.append({
                 "created_at": partida.get("created_at", ""),
                 "word": palabra_info.get("palabra", ""),
-                "language": "spanish" if idioma_name.lower() == "español" else "english",
+                "language": "spanish" if idioma_name and idioma_name.lower() in ["español", "spanish"] else "english",
                 "attempts": partida.get("intentos", 0),
-                "time_taken": partida.get("tiempo", 0),
-                "win": partida.get("victoria", False),
-                "hints_used": partida.get("pistas_usadas", 0)
+                "time_taken": partida.get("time_taken", 0),
+                "win": partida.get("adivinada", False),
+                "hints_used": partida.get("hints_used", 0)
             })
-
         return formatted_data
     except Exception as e:
         print(f"Error getting user statistics: {e}")
@@ -328,13 +327,12 @@ def get_all_statistics() -> list:
                 "username": username,
                 "created_at": partida.get("created_at", ""),
                 "word": palabra_info.get("palabra", ""),
-                "language": "spanish" if idioma_name.lower() == "español" else "english",
+                "language": "spanish" if idioma_name and idioma_name.lower() in ["español", "spanish"] else "english",
                 "attempts": partida.get("intentos", 0),
-                "time_taken": partida.get("tiempo", 0),
-                "win": partida.get("victoria", False),
-                "hints_used": partida.get("pistas_usadas", 0)
+                "time_taken": partida.get("time_taken", 0),
+                "win": partida.get("adivinada", False),
+                "hints_used": partida.get("hints_used", 0)
             })
-
         return formatted_data
     except Exception as e:
         print(f"Error getting all statistics: {e}")
@@ -431,129 +429,4 @@ def get_words_for_game(language_name: str, word_length: int = 5) -> list:
         return words
     except Exception as e:
         print(f"Error getting words for game: {e}")
-        return []
-
-
-def get_hardest_words(language_name: str = None, limit: int = 10) -> list:
-    """Get the hardest words for a given language from 'partidas'."""
-    client = get_supabase_client()
-
-    try:
-        # If no language specified, get hardest words across all languages
-        if language_name is None:
-            # First get all partidas
-            partidas_result = client.table("partidas").select("palabra_id, intentos").execute()
-            partidas = partidas_result.data if partidas_result.data else []
-
-            if not partidas:
-                return []
-
-            # Group partidas by palabra_id and calculate average attempts
-            palabra_stats = {}
-            for partida in partidas:
-                palabra_id = partida["palabra_id"]
-                intentos = partida["intentos"]
-
-                if palabra_id not in palabra_stats:
-                    palabra_stats[palabra_id] = {"total_intentos": intentos, "count": 1}
-                else:
-                    palabra_stats[palabra_id]["total_intentos"] += intentos
-                    palabra_stats[palabra_id]["count"] += 1
-
-            # Calculate average attempts for each word
-            for palabra_id in palabra_stats:
-                palabra_stats[palabra_id]["avg_attempts"] = (
-                        palabra_stats[palabra_id]["total_intentos"] / palabra_stats[palabra_id]["count"]
-                )
-
-            # Sort words by average attempts (descending)
-            sorted_palabra_ids = sorted(
-                palabra_stats.keys(),
-                key=lambda x: palabra_stats[x]["avg_attempts"],
-                reverse=True
-            )[:limit]
-
-            # Get word details from palabras table
-            result = []
-            for palabra_id in sorted_palabra_ids:
-                # Get palabra info
-                palabra_result = client.table("palabras").select("palabra, idioma_id").eq("id", palabra_id).execute()
-                if palabra_result.data and len(palabra_result.data) > 0:
-                    palabra_info = palabra_result.data[0]
-
-                    # Get idioma info
-                    idioma_result = client.table("idiomas").select("idioma").eq("id",
-                                                                                palabra_info["idioma_id"]).execute()
-                    idioma_name = idioma_result.data[0]["idioma"] if idioma_result.data else "Unknown"
-
-                    result.append({
-                        "word": palabra_info["palabra"],
-                        "language": idioma_name,
-                        "avg_attempts": palabra_stats[palabra_id]["avg_attempts"],
-                        "times_played": palabra_stats[palabra_id]["count"]
-                    })
-
-            return result
-        else:
-            # Get hardest words for specific language
-            idioma_id = _get_idioma_id(language_name)
-
-            # Get all palabras for this language
-            palabras_result = client.table("palabras").select("id, palabra").eq("idioma_id", idioma_id).execute()
-            palabras = palabras_result.data if palabras_result.data else []
-
-            if not palabras:
-                return []
-
-            # Create a mapping of palabra_id to palabra text
-            palabra_map = {palabra["id"]: palabra["palabra"] for palabra in palabras}
-            palabra_ids = list(palabra_map.keys())
-
-            # Get all partidas for these palabras
-            partidas_result = client.table("partidas").select("palabra_id, intentos").in_("palabra_id",
-                                                                                          palabra_ids).execute()
-            partidas = partidas_result.data if partidas_result.data else []
-
-            if not partidas:
-                return []
-
-            # Group partidas by palabra_id and calculate average attempts
-            palabra_stats = {}
-            for partida in partidas:
-                palabra_id = partida["palabra_id"]
-                intentos = partida["intentos"]
-
-                if palabra_id not in palabra_stats:
-                    palabra_stats[palabra_id] = {"total_intentos": intentos, "count": 1}
-                else:
-                    palabra_stats[palabra_id]["total_intentos"] += intentos
-                    palabra_stats[palabra_id]["count"] += 1
-
-            # Calculate average attempts for each word
-            for palabra_id in palabra_stats:
-                palabra_stats[palabra_id]["avg_attempts"] = (
-                        palabra_stats[palabra_id]["total_intentos"] / palabra_stats[palabra_id]["count"]
-                )
-
-            # Sort words by average attempts (descending)
-            sorted_palabra_ids = sorted(
-                palabra_stats.keys(),
-                key=lambda x: palabra_stats[x]["avg_attempts"],
-                reverse=True
-            )[:limit]
-
-            # Create result list
-            result = []
-            for palabra_id in sorted_palabra_ids:
-                if palabra_id in palabra_map:
-                    result.append({
-                        "word": palabra_map[palabra_id],
-                        "language": language_name,
-                        "avg_attempts": palabra_stats[palabra_id]["avg_attempts"],
-                        "times_played": palabra_stats[palabra_id]["count"]
-                    })
-
-            return result
-    except Exception as e:
-        print(f"Error getting hardest words: {e}")
         return []
