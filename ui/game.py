@@ -183,7 +183,7 @@ class WordleGame(QMainWindow):
 
         # Set up UI
         self.setWindowTitle("Wordle")
-        self.setMinimumSize(600, 700)
+        self.setMinimumSize(700, 700)
         self.setup_ui()
 
     def load_word_list(self):

@@ -20,8 +20,8 @@ class SignupWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Wordle")
         # Fijar mismo tamaño que la ventana de login para consistencia
-        self.setMinimumSize(450, 700)
-        self.setMaximumSize(450, 700)
+        self.setMinimumSize(700, 700)
+        
         
         # Center window on screen
         screen = QApplication.primaryScreen().geometry()

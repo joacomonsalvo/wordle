@@ -20,7 +20,7 @@ class AdminWindow(QWidget):
         super().__init__(parent)
         self.user_id = user_id
         self.setWindowTitle("Admin Statistics Panel")
-        self.resize(800, 600)
+        self.setMinimumSize(700, 700)
         self.setup_ui()
 
     def setup_ui(self):
@@ -258,6 +258,8 @@ class AdminWindow(QWidget):
         self.history_table.setColumnCount(len(headers))
         self.history_table.setHorizontalHeaderLabels(headers)
         self.history_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.history_table.setMinimumHeight(330)  # or any height you prefer
+
         # End setup; legacy code below is skipped
         return
 

@@ -15,8 +15,8 @@ class RulesWindow(QMainWindow):
         self.language = language
 
         self.setWindowTitle("Wordle - Rules")
-        self.setMinimumSize(500, 400)
-        self.setMaximumSize(800, 800)
+        self.setMinimumSize(700, 700)
+        
 
         # Center window on screen
         screen = QApplication.primaryScreen().geometry()

@@ -16,7 +16,7 @@ class LanguageSelectionWindow(QMainWindow):
         self.selected_language = "english"  # Default language
         
         self.setWindowTitle("Wordle - Language Selection")
-        self.setMinimumSize(400, 300)
+        self.setMinimumSize(700, 700)
         self.setup_ui()
         
     def setup_ui(self):

@@ -89,8 +89,8 @@ class LoginWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Wordle")
         # Fijar tamaño de ventana uniforme para evitar recortes
-        self.setMinimumSize(450, 700)
-        self.setMaximumSize(450, 700)
+        self.setMinimumSize(700, 700)
+        
 
         # Center window on screen
         screen = QApplication.primaryScreen().geometry()

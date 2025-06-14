@@ -25,7 +25,7 @@ class StatisticsWindow(QMainWindow):
         # Set window properties
         title = "Estadísticas" if language == "spanish" else "Statistics"
         self.setWindowTitle(f"Wordle - {title}")
-        self.setMinimumSize(700, 500)
+        self.setMinimumSize(700, 700)
         
         # Load user statistics
         self.load_statistics()

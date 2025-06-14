@@ -19,7 +19,7 @@ class HomeWindow(QMainWindow):
         self.language = language
         
         self.setWindowTitle("Wordle - Home")
-        self.setMinimumSize(500, 400)
+        self.setMinimumSize(700, 700)
         self.setup_ui()
         
     def setup_ui(self):
