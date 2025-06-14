@@ -213,16 +213,16 @@ class WordleGame(QMainWindow):
         header_layout = QHBoxLayout()
         header.setLayout(header_layout)
 
-        back_btn = QPushButton("Back to Home")
+        back_btn = QPushButton("Back to Home" if self.language!="spanish" else "Volver al Inicio")
         back_btn.clicked.connect(self.back_to_home)
 
-        title_label = QLabel("WORDLE")
+        title_label = QLabel("Wordle")
         title_label.setFont(QFont("Arial", 20, QFont.Weight.Bold))
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         hints_layout = QHBoxLayout()
-        hints_label = QLabel(f"Hints: {self.max_hints - self.hints_used}/{self.max_hints}")
-        hint_btn = QPushButton("Use Hint")
+        hints_label = QLabel(f"{self.language=="spanish" and "Pistas" or "Hints"}: {self.max_hints - self.hints_used}/{self.max_hints}")
+        hint_btn = QPushButton("Use Hint" if self.language!="spanish" else "Usar Pista")
         hint_btn.clicked.connect(self.use_hint)
         hints_layout.addWidget(hints_label)
         hints_layout.addWidget(hint_btn)
@@ -333,7 +333,7 @@ class WordleGame(QMainWindow):
         """Submit the current guess for evaluation."""
         # Check if the row is complete
         if self.current_col < 5:
-            self.show_message("Not enough letters", "Please enter a 5-letter word.")
+            self.show_message("Not enough letters" if self.language!="spanish" else "Por favor, ingresa una palabra de 5 letras.", "Please enter a 5-letter word." if self.language!="spanish" else "Por favor, ingresa una palabra de 5 letras.")
             return
 
         # Get the current guess
@@ -403,7 +403,7 @@ class WordleGame(QMainWindow):
             print(f"Error saving game result: {e}")
 
         # Show win message
-        self.show_message("Congratulations!", f"You won in {self.current_row + 1} tries!")
+        self.show_message("Congratulations!" if self.language!="spanish" else "¡Felicidades!", f"You won in {self.current_row + 1} tries!" if self.language!="spanish" else f"¡Ganaste en {self.current_row + 1} intentos!")
 
     def game_lose(self):
         """Handle game lose condition."""
@@ -426,7 +426,7 @@ class WordleGame(QMainWindow):
             print(f"Error saving game result: {e}")
 
         # Show lose message
-        self.show_message("Game Over", f"The word was {self.target_word}.")
+        self.show_message("Game Over" if self.language!="spanish" else "¡Juego Terminado!", f"The word was {self.target_word}." if self.language!="spanish" else f"La palabra era {self.target_word}.")
 
     def use_hint(self):
         """Use a hint to help the player by revealing a letter."""
@@ -438,7 +438,7 @@ class WordleGame(QMainWindow):
 
         # Update hint count
         self.hints_used += 1
-        self.hints_label.setText(f"Hints: {self.max_hints - self.hints_used}/{self.max_hints}")
+        self.hints_label.setText(f"Hints: {self.max_hints - self.hints_used}/{self.max_hints}" if self.language!="spanish" else f"Pistas restantes: {self.max_hints - self.hints_used}/{self.max_hints}")
 
         # Disable hint button if all hints used
         if self.hints_used >= self.max_hints:
@@ -463,7 +463,7 @@ class WordleGame(QMainWindow):
                 unguessed_indices.append(col)
 
         if not unguessed_indices:
-            self.show_message("Hint", "You've already found all the correct letters!")
+            self.show_message("Hint" if self.language!="spanish" else "Pista", "You've already found all the correct letters!" if self.language!="spanish" else "Ya has encontrado todas las letras correctas!")
             return
 
         # Choose a random unguessed letter to reveal
@@ -472,7 +472,7 @@ class WordleGame(QMainWindow):
 
         # Show hint message
         position = col + 1
-        self.show_message("Letter Hint", f"The letter in position {position} is '{letter}'.")
+        self.show_message("Letter Hint" if self.language!="spanish" else "Pista", f"The letter in position {position} is '{letter}'." if self.language!="spanish" else f"La letra en la posición {position} es '{letter}'.")
 
     def show_message(self, title, message):
         """Show a message dialog to the user."""
@@ -486,8 +486,8 @@ class WordleGame(QMainWindow):
         if not self.game_over:
             reply = QMessageBox.question(
                 self,
-                "Quit Game",
-                "Are you sure you want to quit? Your progress will be lost.",
+                "Quit Game" if self.language!="spanish" else "¿Desea salir del juego?",
+                "Are you sure you want to quit? Your progress will be lost." if self.language!="spanish" else "¿Estás seguro de que quieres salir del juego? Tu progreso se perderá.",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
             )
 

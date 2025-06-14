@@ -73,7 +73,7 @@ class AdminWindow(QWidget):
         main_layout.addWidget(summary_widget)
 
         # Game history label
-        history_title = QLabel("Game History")
+        history_title = QLabel("Historial de Partidas")
         history_title.setStyleSheet("font-size: 18px; font-weight: bold; color: #333;")
         main_layout.addWidget(history_title)
 

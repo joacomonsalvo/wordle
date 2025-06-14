@@ -14,7 +14,7 @@ class RulesWindow(QMainWindow):
         self.is_admin = is_admin
         self.language = language
 
-        self.setWindowTitle("Wordle - Rules")
+        self.setWindowTitle("Wordle - Reglas")
         self.setMinimumSize(700, 700)
         
 
@@ -46,7 +46,7 @@ class RulesWindow(QMainWindow):
         self.setCentralWidget(main_widget)
 
         # Title
-        title_label = QLabel("How to Play Wordle" if self.language!="spanish" else "Cómo jugar Wordle")
+        title_label = QLabel("How to Play Wordle" if self.language!="spanish" else "Cómo jugar al Wordle")
         title_label.setFont(QFont("Arial", 26, QFont.Weight.Bold))
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_label.setStyleSheet("color: rgb(68,165,126);")
@@ -68,7 +68,7 @@ class RulesWindow(QMainWindow):
         main_layout.addWidget(scroll_area)
 
         # Continue button
-        continue_btn = create_styled_button("Let's Play!")
+        continue_btn = create_styled_button("Let's Play!" if self.language!="spanish" else "Jugar!")
         continue_btn.setStyleSheet("QPushButton{background-color: rgb(68,165,126); color: white; padding:10px 18px; border:none; border-radius:6px; font-size:16px;} QPushButton:hover{background-color: rgb(58,145,110);}")
         continue_btn.setMinimumWidth(200)
         continue_btn.clicked.connect(self.proceed_to_home)

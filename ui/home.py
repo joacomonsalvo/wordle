@@ -18,7 +18,7 @@ class HomeWindow(QMainWindow):
         self.is_admin = is_admin
         self.language = language
         
-        self.setWindowTitle("Wordle - Home")
+        self.setWindowTitle("Wordle - Home" if self.language!="spanish" else "Wordle - Inicio")
         self.setMinimumSize(700, 700)
         self.setup_ui()
         
@@ -35,7 +35,7 @@ class HomeWindow(QMainWindow):
         header.setLayout(header_layout)
         
         # Language selector
-        language_label = QLabel("Language:")
+        language_label = QLabel("Language:" if self.language!="spanish" else "Lenguaje:")
         self.language_combo = QComboBox()
         self.language_combo.addItem("English", "english")
         self.language_combo.addItem("Español", "spanish")
@@ -46,7 +46,7 @@ class HomeWindow(QMainWindow):
         self.language_combo.currentIndexChanged.connect(self.change_language)
         
         # Logout button
-        logout_btn = QPushButton("Logout")
+        logout_btn = QPushButton("Logout" if self.language!="spanish" else "Cerrar Sesión")
         logout_btn.clicked.connect(self.handle_logout)
         
         # Add widgets to header
@@ -66,20 +66,20 @@ class HomeWindow(QMainWindow):
         buttons_container.setLayout(buttons_layout)
         
         # Play button
-        play_btn = QPushButton("Play Wordle")
+        play_btn = QPushButton("Play Wordle" if self.language!="spanish" else "Jugar Wordle")
         play_btn.setMinimumHeight(50)
         play_btn.setFont(QFont("Arial", 14))
         play_btn.clicked.connect(self.start_game)
         
         # Statistics button
-        stats_btn = QPushButton("My Statistics")
+        stats_btn = QPushButton("My Statistics" if self.language!="spanish" else "Mis Estadísticas")
         stats_btn.setMinimumHeight(50)
         stats_btn.setFont(QFont("Arial", 14))
         stats_btn.clicked.connect(self.show_statistics)
         
         # Admin panel button (only shown to admins)
         if self.is_admin:
-            admin_btn = QPushButton("Admin Panel")
+            admin_btn = QPushButton("Admin Panel" if self.language!="spanish" else "Panel de Administrador")
             admin_btn.setMinimumHeight(50)
             admin_btn.setFont(QFont("Arial", 14))
             admin_btn.clicked.connect(self.show_admin_panel)
@@ -141,4 +141,4 @@ class HomeWindow(QMainWindow):
             self.hide()
             self.login_window.show()
         except Exception as e:
-            print(f"Error logging out: {e}")
+            print(f"Error logging out: {e}" if self.language!="spanish" else f"Error al cerrar sesión: {e}")
