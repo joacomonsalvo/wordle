@@ -7,9 +7,23 @@ from PyQt6.QtCore import QTranslator, QLocale
 from ui.login import LoginWindow
 from database.supabase_client import initialize_supabase
 
+def get_base_path():
+    # When running as a PyInstaller bundle
+    if getattr(sys, 'frozen', False):
+        return sys._MEIPASS
+    # When running as a normal Python script
+    return os.path.abspath(".")
+
 def main():
     # Load environment variables
-    load_dotenv()
+    # Load .env from the bundle
+    env_path = os.path.join(get_base_path(), ".env")
+    prod_path = os.path.join(get_base_path(), ".env.prod")
+
+    if os.path.exists(prod_path):
+        load_dotenv(prod_path)
+    elif os.path.exists(env_path):
+        load_dotenv(env_path)
     
     # Check if Supabase credentials are set
     if not os.getenv("SUPABASE_URL") or not os.getenv("SUPABASE_KEY"):
