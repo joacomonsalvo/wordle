@@ -1,12 +1,46 @@
 import random
 import time
+import asyncio
+import threading
 
 from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
                              QLabel, QPushButton, QFrame, QMessageBox)
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QThread, pyqtSignal, QObject
 from PyQt6.QtGui import QFont
 
 from database.supabase_client import save_game_result
+
+
+class GameSaver(QObject):
+    """Worker class for saving game results asynchronously."""
+    finished = pyqtSignal()
+    error = pyqtSignal(str)
+
+    def __init__(self, user_id, target_word, language, attempts, time_taken, win, hints_used):
+        super().__init__()
+        self.user_id = user_id
+        self.target_word = target_word
+        self.language = language
+        self.attempts = attempts
+        self.time_taken = time_taken
+        self.win = win
+        self.hints_used = hints_used
+
+    def save_game(self):
+        """Save game result in a separate thread."""
+        try:
+            save_game_result(
+                self.user_id,
+                self.target_word,
+                self.language,
+                self.attempts,
+                self.time_taken,
+                self.win,
+                self.hints_used
+            )
+            self.finished.emit()
+        except Exception as e:
+            self.error.emit(str(e))
 
 
 class LetterTile(QFrame):
@@ -412,23 +446,24 @@ class WordleGame(QMainWindow):
         self.game_over = True
         self.win = True
         elapsed_time = time.time() - self.start_time
+        attempts = self.current_row + 1
 
-        # Save game result to database
-        try:
-            save_game_result(
-                self.user_id,
-                self.target_word,
-                self.language,
-                self.current_row + 1,  # Number of attempts
-                elapsed_time,
-                True,  # Win
-                self.hints_used
-            )
-        except Exception as e:
-            print(f"Error saving game result: {e}")
+        # Show win message immediately
+        self.show_message(
+            "Congratulations!" if self.language != "spanish" else "¡Felicidades!",
+            f"You won in {attempts} tries!" if self.language != "spanish" else f"¡Ganaste en {attempts} intentos!"
+        )
 
-        # Show win message
-        self.show_message("Congratulations!" if self.language!="spanish" else "¡Felicidades!", f"You won in {self.current_row + 1} tries!" if self.language!="spanish" else f"¡Ganaste en {self.current_row + 1} intentos!")
+        # Save game result asynchronously
+        self.save_game_result_async(
+            self.user_id,
+            self.target_word,
+            self.language,
+            attempts,
+            elapsed_time,
+            True,  # Win
+            self.hints_used
+        )
 
     def game_lose(self):
         """Handle game lose condition."""
@@ -436,22 +471,22 @@ class WordleGame(QMainWindow):
         self.win = False
         elapsed_time = time.time() - self.start_time
 
-        # Save game result to database
-        try:
-            save_game_result(
-                self.user_id,
-                self.target_word,
-                self.language,
-                6,  # Max attempts
-                elapsed_time,
-                False,  # Loss
-                self.hints_used
-            )
-        except Exception as e:
-            print(f"Error saving game result: {e}")
+        # Show lose message immediately
+        self.show_message(
+            "Game Over" if self.language != "spanish" else "¡Juego Terminado!",
+            f"The word was {self.target_word}." if self.language != "spanish" else f"La palabra era {self.target_word}."
+        )
 
-        # Show lose message
-        self.show_message("Game Over" if self.language!="spanish" else "¡Juego Terminado!", f"The word was {self.target_word}." if self.language!="spanish" else f"La palabra era {self.target_word}.")
+        # Save game result asynchronously
+        self.save_game_result_async(
+            self.user_id,
+            self.target_word,
+            self.language,
+            6,  # Max attempts
+            elapsed_time,
+            False,  # Loss
+            self.hints_used
+        )
 
     def use_hint(self):
         """Use a hint to help the player by revealing a letter."""
@@ -506,13 +541,39 @@ class WordleGame(QMainWindow):
         msg_box.setText(message)
         msg_box.exec()
 
+    def save_game_result_async(self, user_id, target_word, language, attempts, time_taken, win, hints_used):
+        """Save game result in a background thread."""
+        # Create a worker thread
+        self.thread = QThread()
+        self.worker = GameSaver(user_id, target_word, language, attempts, time_taken, win, hints_used)
+        
+        # Move worker to the thread
+        self.worker.moveToThread(self.thread)
+        
+        # Connect signals
+        self.thread.started.connect(self.worker.save_game)
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)
+        self.worker.error.connect(self.handle_save_error)
+        
+        # Start the thread
+        self.thread.start()
+    
+    def handle_save_error(self, error_message):
+        """Handle errors that occur during game result saving."""
+        print(f"Error saving game result: {error_message}")
+        # You could show a non-intrusive message to the user here if desired
+        # For example, a status bar message or a small toast notification
+    
     def back_to_home(self):
         """Return to the home screen."""
         if not self.game_over:
             reply = QMessageBox.question(
                 self,
-                "Quit Game" if self.language!="spanish" else "¿Desea salir del juego?",
-                "Are you sure you want to quit? Your progress will be lost." if self.language!="spanish" else "¿Estás seguro de que quieres salir del juego? Tu progreso se perderá.",
+                "Quit Game" if self.language != "spanish" else "¿Desea salir del juego?",
+                "Are you sure you want to quit? Your progress will be lost." if self.language != "spanish" 
+                else "¿Estás seguro de que quieres salir del juego? Tu progreso se perderá.",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
             )
 
