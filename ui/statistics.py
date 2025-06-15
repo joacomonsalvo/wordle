@@ -165,14 +165,13 @@ class StatisticsWindow(QMainWindow):
         self.history_table = QTableWidget()
         self.setup_history_table()
         
-        # Action buttons for export/link
+        # Action button for export
         action_layout = QHBoxLayout()
         export_btn = QPushButton("Exportar CSV" if self.language=="spanish" else "Export CSV")
+        export_btn.setFixedWidth(150)  # Set a fixed width for the button
         export_btn.clicked.connect(self.export_csv)
-        link_btn = QPushButton("Copiar enlace Looker" if self.language=="spanish" else "Copy Looker Link")
-        link_btn.clicked.connect(self.copy_looker_link)
         action_layout.addWidget(export_btn)
-        action_layout.addWidget(link_btn)
+        action_layout.addStretch()  # Push the button to the left
         action_widget = QWidget()
         action_widget.setLayout(action_layout)
         # Add widgets to main layout

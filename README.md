@@ -1,45 +1,99 @@
-# Juego Wordle
+# Wordle
 
-Una implementación en PyQt6 del popular juego Wordle con integración de Supabase, compatible con idiomas inglés y español.
+[![Ver video demostrativo](https://img.youtube.com/vi/VIDEO_ID/0.jpg)](https://www.youtube.com/watch?v=VIDEO_ID)
 
-## Características
+*Haz clic en la imagen para ver el video demostrativo (reemplazar VIDEO_ID con el ID de tu video de YouTube)*
 
-- Funcionalidad de inicio de sesión y registro
-- Recuperación de contraseña
-- Soporte multiidioma (inglés y español)
-- Página de reglas del juego
-- Seguimiento de estadísticas para usuarios
-- Panel de administración con estadísticas mejoradas
-- Tres pistas por juego
+## 🎮 ¿Qué es Wordle?
 
-## Configuración
+Wordle es un juego que consiste en adivinar palabras que pone a prueba tu vocabulario y habilidades de deducción. El objetivo es adivinar una palabra oculta de 5 letras en un máximo de 6 intentos. Es ideal para demostrar tus habilidades lingüísticas.
 
-1. Instala las dependencias requeridas:
-```
-pip install -r requirements.txt
-```
+## ✨ Características Principales
 
-2. Configura las credenciales de Supabase:
-Crea un archivo `.env` en el directorio raíz con las siguientes variables:
-```
-SUPABASE_URL=tu_url_de_supabase
-SUPABASE_KEY=tu_clave_de_supabase
-```
+- **Interfaz intuitiva** desarrollada con PyQt6
+- **Autenticación** con SHA256
+- **Dos idiomas disponibles**: Inglés y Español
+- **Sistema de pistas** (3 pistas por juego)
+- **Estadísticas detalladas** de tus partidas
+- **Exportar Estadísticas** en formato CSV
+- **Panel de administración** con métricas avanzadas y acceso al Looker
+- **Base de datos en tiempo real** con Supabase
 
-3. Ejecuta la aplicación:
-```
-python main.py
-```
+## 🚀 Cómo Jugar
 
-## Reglas del Juego
+1. **Inicia sesión** o crea una cuenta
+2. **Selecciona tu idioma** preferido
+3. **Leer las Reglas** del juego
+4. **Adivina la palabra** de 5 letras en 6 intentos
+5. **Usa las pistas** cuando lo necesites
+6. **Ver tus Estadísticas** y mejora tu performance
+7. **Exportar tus Estadísticas** en formato CSV
 
-Wordle es un juego de adivinar palabras donde tienes 6 intentos para adivinar una palabra de 5 letras:
-- Verde: La letra está en la palabra y en la posición correcta
-- Amarillo: La letra está en la palabra pero en la posición incorrecta
-- Gris: La letra no está en la palabra
+### 🎯 Puntuación por colores
 
-## Tecnologías Utilizadas
+- 🟩 **Verde**: Letra correcta en la posición correcta
+- 🟨 **Amarillo**: Letra correcta en posición incorrecta
+- ⬜ **Gris**: Letra no está en la palabra
 
-- Python 3.9+
-- PyQt6
-- Supabase
+## 💻 Instalación
+
+### Descarga de Binarios (Recomendado)
+
+1. **Descarga la versión para tu sistema operativo** desde la carpeta `bin/`:
+   - **Windows**: Descarga `Wordle-Windows-x64.exe`
+   - **macOS**: Descarga `Wordle-macOS.dmg` o `Wordle-macOS.app.zip`
+
+2. **Ejecuta el instalador**
+   - En Windows: Haz doble clic en el archivo `.exe`
+   - En macOS: Arrastra la aplicación a tu carpeta de Aplicaciones
+
+### Instalación desde Código Fuente
+
+#### Requisitos Previos
+- Python 3.9 o superior
+- pip (gestor de paquetes de Python)
+- Cuenta en Supabase
+
+#### Pasos para la Instalación
+
+1. **Clona el repositorio**
+   ```bash
+   git clone https://github.com/joacomonsalvo/wordle.git
+   cd wordle
+   ```
+
+2. **Instala las dependencias**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Configura las variables de entorno**
+   Crea un archivo `.env` en la raíz del proyecto con:
+   ```
+   SUPABASE_URL=tu_url_de_supabase
+   SUPABASE_KEY=tu_clave_de_supabase
+   ```
+
+4. **Inicia la aplicación**
+   ```bash
+   python main.py
+   ```
+
+## 🛠 Tecnologías Utilizadas
+
+- **Frontend**: PyQt6
+- **Backend**: Python 3.9+
+- **Base de Datos**: Supabase (PostgreSQL)
+- **Despliegue**: Compatible con Windows y macOS
+
+## 📊 Características Avanzadas
+
+### Para Usuarios
+- Historial detallado de partidas
+- Estadísticas personales
+- Progreso guardado en la nube
+- Interfaz amigable y responsiva
+
+### Para Administradores
+- Panel de control con métricas
+- Estadísticas de juego agregadas

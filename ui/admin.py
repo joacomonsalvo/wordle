@@ -231,7 +231,7 @@ class AdminWindow(QWidget):
             print(f"Error exporting CSV: {e}")
 
     def copy_looker_link(self):
-        link = "https://looker.google.com/your-dashboard-link"
+        link = "https://lookerstudio.google.com/reporting/c9bd8a99-7a40-4fe3-a038-e5a08e87f2ee"
         QApplication.clipboard().setText(link)
 
     # ----------------------------- UI HELPERS -----------------------------
