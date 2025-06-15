@@ -189,16 +189,40 @@ class WordleGame(QMainWindow):
     def load_word_list(self):
         """Load word list based on selected language from the database."""
         from database.supabase_client import get_words_for_game
+        from PyQt6.QtWidgets import QMessageBox
 
-        # Get language name in the format expected by the database
-        language_name = "english" if self.language == "english" else "spanish"
+        try:
+            # Get language name in the format expected by the database
+            language_name = "english" if self.language == "english" else "spanish"
 
-        # Get words from the database
-        self.valid_words = get_words_for_game(language_name)
-        # Select a random target word from the valid words
-        if self.valid_words:
+            # Get words from the database with error handling
+            self.valid_words = get_words_for_game(language_name)
+            
+            # Validate the words list
+            if not self.valid_words or not all(isinstance(word, str) for word in self.valid_words):
+                raise ValueError("Invalid words list received from database" if self.language == "english" else "Invalida lista de palabras recibida de la base de datos")
+                
+            # Select a random target word from the valid words
             self.target_word = random.choice(self.valid_words).upper()
-        else:
+            
+        except Exception as e:
+            print(f"Error loading word list: {str(e)}")
+            # Fallback to default words if there's an error
+            default_words = ["HELLO", "WORLD", "PYTHON", "BAGGY", "QUICK"] if self.language == "english" else \
+                          ["FECHA", "MUNDO", "TORTA", "FELIZ", "LOCOS"]
+            self.valid_words = default_words
+            self.target_word = random.choice(default_words)
+            
+            # Show error message to user
+            QMessageBox.warning(
+                self,
+                "Warning" if self.language == "english" else "Advertencia",
+                "Could not load word list. Using default words." if self.language == "english" 
+                else "No se pudo cargar la lista de palabras. Usando palabras predeterminadas."
+            )
+            
+        # Ensure we have a valid target word
+        if not hasattr(self, 'target_word') or not self.target_word:
             self.target_word = "ERROR"  # Fallback in case no words are loaded
 
     def setup_ui(self):
@@ -221,7 +245,8 @@ class WordleGame(QMainWindow):
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         hints_layout = QHBoxLayout()
-        hints_label = QLabel(f"{self.language=="spanish" and "Pistas" or "Hints"}: {self.max_hints - self.hints_used}/{self.max_hints}")
+        hint_text = "Pistas" if self.language == "spanish" else "Hints"
+        hints_label = QLabel(f"{hint_text}: {self.max_hints - self.hints_used}/{self.max_hints}")
         hint_btn = QPushButton("Use Hint" if self.language!="spanish" else "Usar Pista")
         hint_btn.clicked.connect(self.use_hint)
         hints_layout.addWidget(hints_label)

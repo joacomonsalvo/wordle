@@ -192,23 +192,59 @@ def _get_palabra_id(word_text: str, idioma_id: int) -> int:
 def save_game_result(user_id: int, word: str, language: str, attempts: int, time_taken: float, win: bool,
                      hints_used: int):
     """Save game result to 'partidas' table."""
-    client = get_supabase_client()
+    try:
+        if not user_id or not word or not language:
+            raise ValueError("Missing required parameters")
+            
+        client = get_supabase_client()
+        if not client:
+            raise Exception("Failed to initialize Supabase client")
 
-    idioma_id = _get_idioma_id(language)  # 'English' or 'Spanish'
-    palabra_id = _get_palabra_id(word, idioma_id)
+        # Get the idioma_id for the language
+        idioma_id = _get_idioma_id(language)
+        if not idioma_id:
+            raise ValueError(f"Invalid language: {language}")
 
-    result = client.table("partidas").insert({
-        "usuario_id": user_id,
-        "palabra_id": palabra_id,
-        "adivinada": win,
-        "intentos": attempts,
-        "time_taken": time_taken,
-        "hints_used": hints_used
-    }).execute()
+        # Get or create the word in the palabras table
+        palabra_id = _get_palabra_id(word, idioma_id)
+        if not palabra_id:
+            try:
+                # If word doesn't exist, insert it
+                result = client.table("palabras").insert({
+                    "palabra": word.lower(),
+                    "idioma_id": idioma_id
+                }).execute()
+                
+                if not result.data:
+                    raise Exception("Failed to insert word into 'palabras' table")
+                    
+                palabra_id = result.data[0]["id"]
+            except Exception as e:
+                print(f"Error inserting word into 'palabras' table: {str(e)}")
+                # Try to get the ID again in case of race condition
+                palabra_id = _get_palabra_id(word, idioma_id)
+                if not palabra_id:
+                    raise Exception("Failed to get or create word in database")
 
-    if not result.data or len(result.data) == 0:
-        raise ValueError("Failed to save game result to 'partidas' table.")
-    return result.data[0]
+        # Save the game result
+        result = client.table("partidas").insert({
+            "usuario_id": user_id,
+            "palabra_id": palabra_id,
+            "adivinada": win,
+            "intentos": attempts,
+            "time_taken": time_taken,
+            "hints_used": hints_used
+        }).execute()
+
+        if not result.data or len(result.data) == 0:
+            raise ValueError("Failed to save game result to 'partidas' table")
+            
+        return result.data[0]
+        
+    except Exception as e:
+        print(f"Error in save_game_result: {str(e)}")
+        # Re-raise the exception to be handled by the caller
+        raise
 
 
 def get_user_statistics(user_id: int) -> list:
@@ -409,24 +445,40 @@ def get_language_distribution() -> list:
         return []
 
 
-def get_words_for_game(language_name: str, word_length: int = 5) -> list:
+def get_words_for_game(language_name: str, word_length: int = 5):
     """Get all words for a specific language from the 'palabras' table."""
-    client = get_supabase_client()
-
     try:
-        # Get the idioma_id for the specified language
+        client = get_supabase_client()
+        if not client:
+            raise Exception("Failed to initialize Supabase client")
+
+        # Get the language ID based on the language name
         idioma_id = _get_idioma_id(language_name)
+        if not idioma_id:
+            raise ValueError(f"Invalid language: {language_name}")
 
-        # Get all words for this language
+        # Query the database for words of the specified language and length
         result = client.table("palabras").select("palabra").eq("idioma_id", idioma_id).execute()
-
+        
         if not result.data:
-            return []
+            raise Exception("No data returned from database")
+            
+        # Extract the words from the result
+        words = [item["palabra"].upper() for item in result.data if len(item["palabra"]) == word_length]
 
-        # Filter words by length and convert to uppercase
-        words = [word["palabra"].upper() for word in result.data if len(word["palabra"]) == word_length]
+        # If no words of the correct length were found, try to get any words
+        if not words and result.data:
+            words = [item["palabra"].upper() for item in result.data]
+
+        # If still no words, use default words
+        if not words:
+            default_words = ["HELLO", "WORLD", "PYTHON", "JAZZY", "QUICK"] if language_name == "english" else \
+                          ["HOLA", "MUNDO", "PYTHON", "JAZZ", "RAPID"]
+            return default_words
 
         return words
     except Exception as e:
-        print(f"Error getting words for game: {e}")
-        return []
+        print(f"Error in get_words_for_game: {str(e)}")
+        # Return default words in case of any error
+        return ["HELLO", "WORLD", "PYTHON", "JAZZY", "QUICK"] if language_name == "english" else \
+               ["HOLA", "MUNDO", "PYTHON", "JAZZ", "RAPID"]
