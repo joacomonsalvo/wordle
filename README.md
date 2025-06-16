@@ -41,7 +41,7 @@ Wordle es un juego que consiste en adivinar palabras que pone a prueba tu vocabu
 
 1. **Descarga la versión para tu sistema operativo** desde la carpeta `bin/`:
    - **Windows**: Descarga `Wordle-Windows-x64.exe`
-   - **macOS**: Descarga `Wordle-macOS.dmg` o `Wordle-macOS.app.zip`
+   - **macOS (ARM)**: Descarga `Wordle.app.zip`
 
 2. **Ejecuta el instalador**
    - En Windows: Haz doble clic en el archivo `.exe`
