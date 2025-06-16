@@ -3,7 +3,7 @@ from PyQt6.QtCore import Qt
 
 
 def create_styled_button(text, is_primary=True):
-    """Create a styled button with modern design."""
+    """Crea un botón estilizado con un diseño moderno."""
     btn = QPushButton(text)
     btn.setMinimumHeight(40)
     btn.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -49,7 +49,7 @@ def create_styled_button(text, is_primary=True):
 
 
 def create_styled_input(placeholder):
-    """Create a styled input field with modern design."""
+    """Crea un campo de entrada estilizado con un diseño moderno."""
     input_field = QLineEdit()
     input_field.setPlaceholderText(placeholder)
     input_field.setMinimumHeight(40)

@@ -6,7 +6,7 @@ from PyQt6.QtGui import QFont
 
 
 class RulesWindow(QMainWindow):
-    """Window displaying the rules of the Wordle game"""
+    """Ventana que muestra las reglas del juego Wordle"""
 
     def __init__(self, user_id, is_admin, language):
         super().__init__()
@@ -18,12 +18,10 @@ class RulesWindow(QMainWindow):
         self.setMinimumSize(700, 700)
         
 
-        # Center window on screen
         screen = QApplication.primaryScreen().geometry()
         self.move(int((screen.width() - self.width()) / 2),
                   int((screen.height() - self.height()) / 2))
 
-        # Set window background color
         self.setStyleSheet("""
             QMainWindow {
                 background-color: #f7f7f7;
@@ -39,26 +37,22 @@ class RulesWindow(QMainWindow):
         self.setup_ui()
 
     def setup_ui(self):
-        # Main widget and layout
         main_widget = QWidget()
         main_layout = QVBoxLayout()
         main_widget.setLayout(main_layout)
         self.setCentralWidget(main_widget)
 
-        # Title
         title_label = QLabel("How to Play Wordle" if self.language!="spanish" else "Cómo jugar al Wordle")
         title_label.setFont(QFont("Arial", 26, QFont.Weight.Bold))
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_label.setStyleSheet("color: rgb(68,165,126);")
         main_layout.addWidget(title_label)
 
-        # Scroll area for rules content
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
         scroll_content = QWidget()
         scroll_layout = QVBoxLayout(scroll_content)
 
-        # Rules content
         if self.language == "spanish":
             self.add_spanish_rules(scroll_layout)
         else:
@@ -67,7 +61,6 @@ class RulesWindow(QMainWindow):
         scroll_area.setWidget(scroll_content)
         main_layout.addWidget(scroll_area)
 
-        # Continue button
         continue_btn = create_styled_button("Let's Play!" if self.language!="spanish" else "Jugar!")
         continue_btn.setStyleSheet("QPushButton{background-color: rgb(68,165,126); color: white; padding:10px 18px; border:none; border-radius:6px; font-size:16px;} QPushButton:hover{background-color: rgb(58,145,110);}")
         continue_btn.setMinimumWidth(200)
@@ -76,7 +69,7 @@ class RulesWindow(QMainWindow):
         main_layout.addSpacing(20)
 
     def add_english_rules(self, layout):
-        """Add English rules to the layout."""
+        """Añade reglas inglesas a la maqueta."""
         rules = [
             ("<b>Guess the WORDLE in 6 tries.</b>", 14),
             ("Each guess must be a valid 5 letter word.", 12),
@@ -95,7 +88,6 @@ class RulesWindow(QMainWindow):
         ]
 
         for text, size in rules:
-            # prepend bullet for smaller text paragraphs
             if size <= 14:
                 text = f"&#8226; {text}"
             label = QLabel(text)
@@ -106,7 +98,7 @@ class RulesWindow(QMainWindow):
             layout.addSpacing(10)
 
     def add_spanish_rules(self, layout):
-        """Add Spanish rules to the layout."""
+        """Añade reglas españolas a la maqueta."""
         rules = [
             ("<b>Adivina el WORDLE en 6 intentos.</b>", 14),
             ("Cada intento debe ser una palabra válida de 5 letras.", 12),
@@ -128,7 +120,6 @@ class RulesWindow(QMainWindow):
         ]
 
         for text, size in rules:
-            # prepend bullet for smaller text paragraphs
             if size <= 14:
                 text = f"&#8226; {text}"
             label = QLabel(text)
@@ -146,4 +137,4 @@ class RulesWindow(QMainWindow):
             self.home_window.show()
         except Exception as e:
             from PyQt6.QtWidgets import QMessageBox
-            QMessageBox.critical(self, "Error", f"Could not load home window: {str(e)}")
+            QMessageBox.critical(self, "Error", f"No se pudo cargar la ventana de inicio: {str(e)}")

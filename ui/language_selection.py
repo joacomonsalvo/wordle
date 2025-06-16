@@ -7,20 +7,19 @@ from ui.rules import RulesWindow
 
 
 class LanguageSelectionWindow(QMainWindow):
-    """Window for selecting application language."""
+    """Ventana para seleccionar el idioma de la aplicación."""
     
     def __init__(self, user_id, is_admin):
         super().__init__()
         self.user_id = user_id
         self.is_admin = is_admin
-        self.selected_language = "spanish"  # Default language
+        self.selected_language = "spanish"
         
         self.setWindowTitle("Wordle - Seleccionar Idioma")
         self.setMinimumSize(700, 700)
         self.setup_ui()
         
     def setup_ui(self):
-        # Main widget and layout
         main_widget = QWidget()
         main_layout = QVBoxLayout()
         main_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -29,25 +28,21 @@ class LanguageSelectionWindow(QMainWindow):
         main_widget.setLayout(main_layout)
         self.setCentralWidget(main_widget)
 
-        # Title
         title_label = QLabel("Seleccionar Idioma")
         title_label.setFont(QFont("Arial", 32, QFont.Weight.Bold))
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_label.setStyleSheet("color: rgb(65, 165, 126);")
         main_layout.addWidget(title_label)
 
-        # Language selection container
         selection_container = QWidget()
         selection_layout = QVBoxLayout()
         selection_layout.setSpacing(20)
         selection_container.setLayout(selection_layout)
 
-        # Language label
         language_label = QLabel("Selecciona tu idioma:")
         language_label.setFont(QFont("Arial", 14))
         language_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        # Combo box
         self.language_combo = QComboBox()
         self.language_combo.setFixedHeight(40)
         self.language_combo.setFont(QFont("Arial", 12))
@@ -62,7 +57,6 @@ class LanguageSelectionWindow(QMainWindow):
         self.language_combo.addItem("English", "english")
         self.language_combo.currentIndexChanged.connect(self.on_language_changed)
 
-        # Button
         continue_btn = QPushButton("Continuar")
         continue_btn.setFixedHeight(40)
         continue_btn.setFont(QFont("Arial", 14, QFont.Weight.Medium))
@@ -79,7 +73,6 @@ class LanguageSelectionWindow(QMainWindow):
         """)
         continue_btn.clicked.connect(self.proceed_to_rules)
 
-        # Add widgets to layout
         selection_layout.addWidget(language_label)
         selection_layout.addWidget(self.language_combo)
         selection_layout.addWidget(continue_btn)

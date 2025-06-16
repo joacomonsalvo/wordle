@@ -10,7 +10,7 @@ from ui.admin import AdminWindow
 
 
 class HomeWindow(QMainWindow):
-    """Home window with options to play or view statistics."""
+    """Ventana de inicio con opciones para jugar o ver estadísticas."""
     
     def __init__(self, user_id, is_admin, language):
         super().__init__()
@@ -23,61 +23,50 @@ class HomeWindow(QMainWindow):
         self.setup_ui()
         
     def setup_ui(self):
-        # Main widget and layout
         main_widget = QWidget()
         main_layout = QVBoxLayout()
         main_widget.setLayout(main_layout)
         self.setCentralWidget(main_widget)
         
-        # Header with language selection and logout
         header = QWidget()
         header_layout = QHBoxLayout()
         header.setLayout(header_layout)
         
-        # Language selector
         language_label = QLabel("Language:" if self.language!="spanish" else "Lenguaje:")
         self.language_combo = QComboBox()
         self.language_combo.addItem("English", "english")
         self.language_combo.addItem("Español", "spanish")
         
-        # Set current language
         index = 0 if self.language == "english" else 1
         self.language_combo.setCurrentIndex(index)
         self.language_combo.currentIndexChanged.connect(self.change_language)
         
-        # Logout button
         logout_btn = QPushButton("Logout" if self.language!="spanish" else "Cerrar Sesión")
         logout_btn.clicked.connect(self.handle_logout)
         
-        # Add widgets to header
         header_layout.addWidget(language_label)
         header_layout.addWidget(self.language_combo)
         header_layout.addStretch()
         header_layout.addWidget(logout_btn)
         
-        # Title
         title_label = QLabel("Wordle")
         title_label.setFont(QFont("Arial", 28, QFont.Weight.Bold))
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        # Buttons container
         buttons_container = QWidget()
         buttons_layout = QVBoxLayout()
         buttons_container.setLayout(buttons_layout)
         
-        # Play button
         play_btn = QPushButton("Play Wordle" if self.language!="spanish" else "Jugar Wordle")
         play_btn.setMinimumHeight(50)
         play_btn.setFont(QFont("Arial", 14))
         play_btn.clicked.connect(self.start_game)
         
-        # Statistics button
         stats_btn = QPushButton("My Statistics" if self.language!="spanish" else "Mis Estadísticas")
         stats_btn.setMinimumHeight(50)
         stats_btn.setFont(QFont("Arial", 14))
         stats_btn.clicked.connect(self.show_statistics)
         
-        # Admin panel button (only shown to admins)
         if self.is_admin:
             admin_btn = QPushButton("Admin Panel" if self.language!="spanish" else "Panel de Administrador")
             admin_btn.setMinimumHeight(50)
@@ -85,7 +74,6 @@ class HomeWindow(QMainWindow):
             admin_btn.clicked.connect(self.show_admin_panel)
             buttons_layout.addWidget(admin_btn)
         
-        # Add widgets to layouts
         buttons_layout.addWidget(play_btn)
         buttons_layout.addWidget(stats_btn)
         
@@ -96,33 +84,31 @@ class HomeWindow(QMainWindow):
         main_layout.addStretch()
         
     def change_language(self, index):
-        """Change the application language."""
+        """Cambiar el idioma de la aplicación."""
         new_language = self.language_combo.itemData(index)
         
         if new_language != self.language:
             self.language = new_language
             
-            # In a real app, we would update translations here
-            # For now, just update the window title to reflect the language change
             if self.language == "spanish":
                 self.setWindowTitle("Wordle - Inicio")
             else:
                 self.setWindowTitle("Wordle - Home")
     
     def start_game(self):
-        """Start a new Wordle game."""
+        """Iniciar un nuevo juego de Wordle."""
         self.game_window = WordleGame(self.user_id, self.is_admin, self.language)
         self.hide()
         self.game_window.show()
     
     def show_statistics(self):
-        """Show user statistics."""
+        """Mostrar estadísticas del usuario."""
         self.stats_window = StatisticsWindow(self.user_id, self.is_admin, self.language)
         self.hide()
         self.stats_window.show()
     
     def show_admin_panel(self):
-        """Show admin panel (admin only)."""
+        """Mostrar panel de administrador (solo para administradores)."""
         if not self.is_admin:
             return
             
@@ -131,11 +117,10 @@ class HomeWindow(QMainWindow):
         self.admin_panel.show()
     
     def handle_logout(self):
-        """Handle user logout."""
+        """Manejar cierre de sesión del usuario."""
         try:
             sign_out()
             
-            # Return to login screen
             from ui.login import LoginWindow
             self.login_window = LoginWindow()
             self.hide()

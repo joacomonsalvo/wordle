@@ -12,7 +12,7 @@ from ui.styles import create_styled_button, create_styled_input
 
 
 class PasswordResetDialog(QDialog):
-    """Dialog for password reset functionality."""
+    """Dialogo para restablecer contraseña."""
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -25,25 +25,19 @@ class PasswordResetDialog(QDialog):
         layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(10)
 
-        # Username input
         username_label = QLabel("Nombre de usuario:")
         self.username_input = create_styled_input("Ingresa tu nombre de usuario")
 
-        # New password input
         password_label = QLabel("Contraseña nueva:")
         self.password_input = create_styled_input("Ingresa tu nueva contraseña")
         self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
 
-        # Confirm password input
         confirm_label = QLabel("Confirmar contraseña nueva:")
         self.confirm_input = create_styled_input("Confirma tu nueva contraseña")
         self.confirm_input.setEchoMode(QLineEdit.EchoMode.Password)
-
-        # Reset button
         reset_btn = create_styled_button("Restablecer contraseña")
         reset_btn.clicked.connect(self.reset_password)
 
-        # Add widgets to layout
         layout.addWidget(QLabel("Ingresa tu nombre de usuario y tu nueva contraseña"))
         layout.addWidget(username_label)
         layout.addWidget(self.username_input)
@@ -69,7 +63,6 @@ class PasswordResetDialog(QDialog):
             return
 
         try:
-            # We'll implement this function in supabase_client.py
             from database.supabase_client import reset_user_password
             reset_user_password(username, password)
             QMessageBox.information(
@@ -83,21 +76,18 @@ class PasswordResetDialog(QDialog):
 
 
 class LoginWindow(QMainWindow):
-    """Main login window for the application."""
+    """Ventana de inicio de sesión."""
 
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Wordle")
-        # Fijar tamaño de ventana uniforme para evitar recortes
         self.setMinimumSize(700, 700)
         
 
-        # Center window on screen
         screen = QApplication.primaryScreen().geometry()
         self.move(int((screen.width() - self.width()) / 2),
                   int((screen.height() - self.height()) / 2))
 
-        # Set window background color
         self.setStyleSheet("""
             QMainWindow {
                 background-color: #f7f7f7;
@@ -107,7 +97,6 @@ class LoginWindow(QMainWindow):
         self.setup_ui()
 
     def setup_ui(self):
-        # Main widget and layout
         main_widget = QWidget()
         main_layout = QVBoxLayout()
         main_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -116,7 +105,6 @@ class LoginWindow(QMainWindow):
         main_widget.setLayout(main_layout)
         self.setCentralWidget(main_widget)
 
-        # Create a card-like container
         card = QFrame()
         card.setStyleSheet("""
             QFrame {
@@ -134,35 +122,28 @@ class LoginWindow(QMainWindow):
         card_layout.setContentsMargins(20, 20, 20, 20)
         card.setLayout(card_layout)
 
-        # Title
         title_label = QLabel("Wordle")
         title_label.setFont(QFont("SF Pro Display", 32, QFont.Weight.Bold))
         title_label.setStyleSheet("color: #10a37f;")
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        # Tagline
         tagline_label = QLabel("Un juego lúdico de palabras que desafía tu ingenio y vocabulario en cada partida.")
         tagline_label.setWordWrap(True)
         tagline_label.setFont(QFont("SF Pro Display", 15))
         tagline_label.setStyleSheet("color: #444444;")
         tagline_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        # Subtitle
         subtitle = QLabel("Bienvenido de nuevo")
         subtitle.setFont(QFont("SF Pro Display", 15))
         subtitle.setStyleSheet("color: #666666;")
         subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        # Login form
         self.username_input = create_styled_input("Nombre de usuario")
         self.password_input = create_styled_input("Contraseña")
         self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
-
-        # Login button
         login_btn = create_styled_button("Iniciar sesión")
         login_btn.clicked.connect(self.handle_login)
 
-        # Sign up section
         signup_container = QWidget()
         signup_layout = QHBoxLayout()
         signup_layout.setContentsMargins(0, 0, 0, 0)
@@ -190,7 +171,6 @@ class LoginWindow(QMainWindow):
         signup_layout.addWidget(signup_btn)
         signup_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        # Forgot password button
         forgot_btn = QPushButton("¿Olvidaste tu contraseña?")
         forgot_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         forgot_btn.setStyleSheet("""
@@ -208,9 +188,8 @@ class LoginWindow(QMainWindow):
         """)
         forgot_btn.clicked.connect(self.show_password_reset)
 
-        # Add widgets to card layout
         card_layout.addWidget(title_label)
-        card_layout.addSpacing(5) # Reduce spacing between title and tagline
+        card_layout.addSpacing(5)
         card_layout.addWidget(tagline_label)
         card_layout.addWidget(subtitle)
         card_layout.addSpacing(10)
@@ -220,7 +199,6 @@ class LoginWindow(QMainWindow):
         card_layout.addWidget(login_btn)
         card_layout.addWidget(signup_container)
 
-        # Add card to main layout
         main_layout.addWidget(card)
 
     def handle_login(self):
@@ -235,22 +213,19 @@ class LoginWindow(QMainWindow):
             user = sign_in(username, password)
 
             if user:
-                # Store user data
                 self.user_id = user["id"]
                 self.is_admin = user.get("is_admin", False)
 
                 if self.is_admin:
-                    # Admin users go directly to statistics panel
                     self.show_admin_panel()
                 else:
-                    # Regular users go to language selection
                     self.show_language_selection()
             else:
                 self.show_error("Nombre de usuario o contraseña inválidos.")
         except ValueError as e:
             self.show_error(str(e))
         except Exception as e:
-            self.show_error(f"An error occurred: {str(e)}")
+            self.show_error(f"Ocurrio un Error: {str(e)}")
 
     def show_error(self, message):
         error = QMessageBox(self)
@@ -292,11 +267,8 @@ class LoginWindow(QMainWindow):
         dialog.exec()
 
     def on_signup_successful(self, user_id, is_admin):
-        # Store user data
         self.user_id = user_id
         self.is_admin = is_admin
-
-        # Show language selection
         self.show_language_selection()
 
     def show_language_selection(self):

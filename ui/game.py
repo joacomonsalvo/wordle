@@ -12,7 +12,7 @@ from database.supabase_client import save_game_result
 
 
 class GameSaver(QObject):
-    """Worker class for saving game results asynchronously."""
+    """Clase trabajadora para guardar los resultados del juego de forma asíncrona."""
     finished = pyqtSignal()
     error = pyqtSignal(str)
 
@@ -27,7 +27,7 @@ class GameSaver(QObject):
         self.hints_used = hints_used
 
     def save_game(self):
-        """Save game result in a separate thread."""
+        """Guardar el resultado del juego en un hilo separado."""
         try:
             save_game_result(
                 self.user_id,
@@ -44,7 +44,7 @@ class GameSaver(QObject):
 
 
 class LetterTile(QFrame):
-    """A tile representing a single letter in the Wordle game."""
+    """Un cuadrado que representa una letra en el juego de Wordle."""
 
     def __init__(self, row, col):
         super().__init__()
@@ -56,29 +56,24 @@ class LetterTile(QFrame):
         self.setup_ui()
 
     def setup_ui(self):
-        # Set fixed size for the tile
         self.setFixedSize(60, 60)
 
-        # Set frame style
         self.setFrameShape(QFrame.Shape.Box)
         self.setLineWidth(2)
 
-        # Create label for the letter
         self.letter_label = QLabel("")
         self.letter_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.letter_label.setFont(QFont("Arial", 24, QFont.Weight.Bold))
 
-        # Add label to layout
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.letter_label)
         self.setLayout(layout)
 
-        # Initial styling
         self.update_style()
 
     def set_letter(self, letter):
-        """Set the letter for this tile."""
+        """Establece la letra para este azulejo."""
         self.letter = letter.upper() if letter else ""
         self.letter_label.setText(self.letter)
 
@@ -90,12 +85,12 @@ class LetterTile(QFrame):
         self.update_style()
 
     def set_state(self, state):
-        """Set the state of the tile (correct, present, absent)."""
+        """Establece el estado del azulejo (correcto, presente, ausente)."""
         self.state = state
         self.update_style()
 
     def update_style(self):
-        """Update the visual style based on the current state."""
+        """Actualiza el estilo visual basado en el estado actual."""
         style = "border: 2px solid "
 
         if self.state == "empty":
@@ -118,23 +113,21 @@ class LetterTile(QFrame):
 
 
 class KeyboardKey(QPushButton):
-    """A key on the virtual keyboard."""
+    """Un botón en el teclado virtual."""
 
     def __init__(self, text, key_press_callback):
         super().__init__(text)
         self.key = text
         self.state = "unused"  # unused, correct, present, absent
 
-        # Connect the key press signal
         self.clicked.connect(lambda: key_press_callback(self.key))
 
-        # Set up styling
         self.setFixedHeight(50)
         self.setFont(QFont("Arial", 14, QFont.Weight.Bold))
         self.update_style()
 
     def set_state(self, state):
-        """Set the state of the key."""
+        """Establece el estado de la tecla."""
         # Only update to a 'better' state (correct > present > absent > unused)
         if (state == "correct" or
                 (state == "present" and self.state != "correct") or
@@ -143,7 +136,7 @@ class KeyboardKey(QPushButton):
             self.update_style()
 
     def update_style(self):
-        """Update the visual style based on the current state."""
+        """Actualiza el estilo visual basado en el estado actual."""
         if self.state == "unused":
             self.setStyleSheet("""
                 QPushButton {
@@ -195,7 +188,7 @@ class KeyboardKey(QPushButton):
 
 
 class WordleGame(QMainWindow):
-    """The main Wordle game window."""
+    """La ventana principal del juego Wordle."""
 
     def __init__(self, user_id, is_admin, language):
         super().__init__()
@@ -203,7 +196,6 @@ class WordleGame(QMainWindow):
         self.is_admin = is_admin
         self.language = language
 
-        # Game state
         self.current_row = 0
         self.current_col = 0
         self.game_over = False
@@ -212,42 +204,34 @@ class WordleGame(QMainWindow):
         self.hints_used = 0
         self.max_hints = 3
 
-        # Load word list based on language
         self.load_word_list()
 
-        # Set up UI
         self.setWindowTitle("Wordle")
         self.setMinimumSize(700, 700)
         self.setup_ui()
 
     def load_word_list(self):
-        """Load word list based on selected language from the database."""
+        """Cargue de la base de datos la lista de palabras según el idioma seleccionado."""
         from database.supabase_client import get_words_for_game
         from PyQt6.QtWidgets import QMessageBox
 
         try:
-            # Get language name in the format expected by the database
             language_name = "english" if self.language == "english" else "spanish"
 
-            # Get words from the database with error handling
             self.valid_words = get_words_for_game(language_name)
             
-            # Validate the words list
             if not self.valid_words or not all(isinstance(word, str) for word in self.valid_words):
                 raise ValueError("Invalid words list received from database" if self.language == "english" else "Invalida lista de palabras recibida de la base de datos")
                 
-            # Select a random target word from the valid words
             self.target_word = random.choice(self.valid_words).upper()
             
         except Exception as e:
             print(f"Error loading word list: {str(e)}")
-            # Fallback to default words if there's an error
             default_words = ["HELLO", "WORLD", "PYTHON", "BAGGY", "QUICK"] if self.language == "english" else \
                           ["FECHA", "MUNDO", "TORTA", "FELIZ", "LOCOS"]
             self.valid_words = default_words
             self.target_word = random.choice(default_words)
             
-            # Show error message to user
             QMessageBox.warning(
                 self,
                 "Warning" if self.language == "english" else "Advertencia",
@@ -255,18 +239,15 @@ class WordleGame(QMainWindow):
                 else "No se pudo cargar la lista de palabras. Usando palabras predeterminadas."
             )
             
-        # Ensure we have a valid target word
         if not hasattr(self, 'target_word') or not self.target_word:
-            self.target_word = "ERROR"  # Fallback in case no words are loaded
+            self.target_word = "ERROR"  
 
     def setup_ui(self):
-        # Main widget and layout
         main_widget = QWidget()
         main_layout = QVBoxLayout()
         main_widget.setLayout(main_layout)
         self.setCentralWidget(main_widget)
 
-        # Header with game title and back button
         header = QWidget()
         header_layout = QHBoxLayout()
         header.setLayout(header_layout)
@@ -295,7 +276,6 @@ class WordleGame(QMainWindow):
         header_layout.addStretch()
         header_layout.addLayout(hints_layout)
 
-        # Game board (6x5 grid of tiles)
         board_widget = QWidget()
         board_layout = QGridLayout()
         board_layout.setSpacing(5)
@@ -310,15 +290,11 @@ class WordleGame(QMainWindow):
                 board_layout.addWidget(tile, row, col)
             self.tiles.append(row_tiles)
 
-        # Virtual keyboard
         keyboard_widget = QWidget()
         keyboard_layout = QVBoxLayout()
         keyboard_widget.setLayout(keyboard_layout)
-
-        # Create keyboard rows
         self.keyboard_keys = {}
 
-        # Row 1: Q-P
         row1_layout = QHBoxLayout()
         row1_keys = "QWERTYUIOP"
         for key in row1_keys:
@@ -326,7 +302,6 @@ class WordleGame(QMainWindow):
             row1_layout.addWidget(key_btn)
             self.keyboard_keys[key] = key_btn
 
-        # Row 2: A-L
         row2_layout = QHBoxLayout()
         row2_layout.addSpacing(15)
         row2_keys = "ASDFGHJKL"
@@ -336,7 +311,6 @@ class WordleGame(QMainWindow):
             self.keyboard_keys[key] = key_btn
         row2_layout.addSpacing(15)
 
-        # Row 3: Enter, Z-M, Backspace
         row3_layout = QHBoxLayout()
 
         enter_btn = KeyboardKey("ENTER", self.key_pressed)
@@ -353,19 +327,17 @@ class WordleGame(QMainWindow):
         backspace_btn.setFixedWidth(80)
         row3_layout.addWidget(backspace_btn)
 
-        # Add keyboard rows to layout
         keyboard_layout.addLayout(row1_layout)
         keyboard_layout.addLayout(row2_layout)
         keyboard_layout.addLayout(row3_layout)
 
-        # Add widgets to main layout
         main_layout.addWidget(header)
         main_layout.addWidget(board_widget)
         main_layout.addStretch()
         main_layout.addWidget(keyboard_widget)
 
     def key_pressed(self, key):
-        """Handle a key press on the virtual keyboard."""
+        """Manejar una pulsación de tecla en el teclado virtual."""
         if self.game_over:
             return
 
@@ -377,60 +349,50 @@ class WordleGame(QMainWindow):
             self.add_letter(key)
 
     def add_letter(self, letter):
-        """Add a letter to the current position."""
+        """Agregar una letra a la posición actual."""
         if self.current_col < 5:
             self.tiles[self.current_row][self.current_col].set_letter(letter)
             self.current_col += 1
 
     def delete_letter(self):
-        """Delete the last letter entered."""
+        """Eliminar la última letra ingresada."""
         if self.current_col > 0:
             self.current_col -= 1
             self.tiles[self.current_row][self.current_col].set_letter("")
 
     def submit_guess(self):
-        """Submit the current guess for evaluation."""
-        # Check if the row is complete
+        """Enviar la suposición actual para evaluación."""
         if self.current_col < 5:
             self.show_message("Not enough letters" if self.language!="spanish" else "Por favor, ingresa una palabra de 5 letras.", "Please enter a 5-letter word." if self.language!="spanish" else "Por favor, ingresa una palabra de 5 letras.")
             return
-
-        # Get the current guess
         guess = ""
         for col in range(5):
             guess += self.tiles[self.current_row][col].letter
 
-        # Evaluate the guess against the target word
         self.evaluate_guess(guess)
 
-        # Check for win or game over
         if guess == self.target_word:
             self.game_win()
         elif self.current_row >= 5:
             self.game_lose()
         else:
-            # Move to the next row
             self.current_row += 1
             self.current_col = 0
 
     def evaluate_guess(self, guess):
-        """Evaluate the current guess against the target word."""
-        # Create a dictionary to track remaining letters in the target word
+        """Evaluar la suposición actual contra la palabra objetivo."""
         remaining_letters = {}
         for letter in self.target_word:
             remaining_letters[letter] = remaining_letters.get(letter, 0) + 1
 
-        # First pass: mark correct letters
         for col, letter in enumerate(guess):
             if letter == self.target_word[col]:
                 self.tiles[self.current_row][col].set_state("correct")
                 self.keyboard_keys[letter].set_state("correct")
                 remaining_letters[letter] -= 1
 
-        # Second pass: mark present or absent letters
         for col, letter in enumerate(guess):
             if letter == self.target_word[col]:
-                # Already marked as correct in the first pass
                 continue
 
             if letter in remaining_letters and remaining_letters[letter] > 0:
@@ -442,19 +404,17 @@ class WordleGame(QMainWindow):
                 self.keyboard_keys[letter].set_state("absent")
 
     def game_win(self):
-        """Handle game win condition."""
+        """Manejar la condición de victoria del juego."""
         self.game_over = True
         self.win = True
         elapsed_time = time.time() - self.start_time
         attempts = self.current_row + 1
 
-        # Show win message immediately
         self.show_message(
             "Congratulations!" if self.language != "spanish" else "¡Felicidades!",
             f"You won in {attempts} tries!" if self.language != "spanish" else f"¡Ganaste en {attempts} intentos!"
         )
 
-        # Save game result asynchronously
         self.save_game_result_async(
             self.user_id,
             self.target_word,
@@ -466,18 +426,14 @@ class WordleGame(QMainWindow):
         )
 
     def game_lose(self):
-        """Handle game lose condition."""
+        """Manejar la condición de perder del juego."""
         self.game_over = True
         self.win = False
         elapsed_time = time.time() - self.start_time
-
-        # Show lose message immediately
         self.show_message(
             "Game Over" if self.language != "spanish" else "¡Juego Terminado!",
             f"The word was {self.target_word}." if self.language != "spanish" else f"La palabra era {self.target_word}."
         )
-
-        # Save game result asynchronously
         self.save_game_result_async(
             self.user_id,
             self.target_word,
@@ -489,30 +445,25 @@ class WordleGame(QMainWindow):
         )
 
     def use_hint(self):
-        """Use a hint to help the player by revealing a letter."""
+        """Utiliza una pista para ayudar al jugador revelando una letra."""
         if self.hints_used >= self.max_hints or self.game_over:
             return
 
-        # Reveal a letter hint
         self.reveal_letter_hint()
 
-        # Update hint count
         self.hints_used += 1
         self.hints_label.setText(f"Hints: {self.max_hints - self.hints_used}/{self.max_hints}" if self.language!="spanish" else f"Pistas restantes: {self.max_hints - self.hints_used}/{self.max_hints}")
 
-        # Disable hint button if all hints used
         if self.hints_used >= self.max_hints:
             self.hint_btn.setEnabled(False)
 
     def reveal_letter_hint(self):
-        """Hint: Reveal a correct letter."""
-        # Find letters that haven't been correctly guessed yet
+        """Pista: Revelar una letra correcta"""
         unguessed_indices = []
 
         for col in range(5):
             correct = False
 
-            # Check if this letter has been correctly guessed in previous rows
             for row in range(self.current_row):
                 if (self.tiles[row][col].letter == self.target_word[col] and
                         self.tiles[row][col].state == "correct"):
@@ -526,48 +477,40 @@ class WordleGame(QMainWindow):
             self.show_message("Hint" if self.language!="spanish" else "Pista", "You've already found all the correct letters!" if self.language!="spanish" else "Ya has encontrado todas las letras correctas!")
             return
 
-        # Choose a random unguessed letter to reveal
         col = random.choice(unguessed_indices)
         letter = self.target_word[col]
 
-        # Show hint message
         position = col + 1
         self.show_message("Letter Hint" if self.language!="spanish" else "Pista", f"The letter in position {position} is '{letter}'." if self.language!="spanish" else f"La letra en la posición {position} es '{letter}'.")
 
     def show_message(self, title, message):
-        """Show a message dialog to the user."""
+        """Mostrar dialogo"""
         msg_box = QMessageBox(self)
         msg_box.setWindowTitle(title)
         msg_box.setText(message)
         msg_box.exec()
 
     def save_game_result_async(self, user_id, target_word, language, attempts, time_taken, win, hints_used):
-        """Save game result in a background thread."""
-        # Create a worker thread
+        """Guardar el resultado del juego en un hilo en segundo plano."""
         self.thread = QThread()
         self.worker = GameSaver(user_id, target_word, language, attempts, time_taken, win, hints_used)
         
-        # Move worker to the thread
         self.worker.moveToThread(self.thread)
         
-        # Connect signals
         self.thread.started.connect(self.worker.save_game)
         self.worker.finished.connect(self.thread.quit)
         self.worker.finished.connect(self.worker.deleteLater)
         self.thread.finished.connect(self.thread.deleteLater)
         self.worker.error.connect(self.handle_save_error)
         
-        # Start the thread
         self.thread.start()
     
     def handle_save_error(self, error_message):
-        """Handle errors that occur during game result saving."""
+        """Manejar errores que ocurren durante el guardado del resultado del juego."""
         print(f"Error saving game result: {error_message}")
-        # You could show a non-intrusive message to the user here if desired
-        # For example, a status bar message or a small toast notification
     
     def back_to_home(self):
-        """Return to the home screen."""
+        """Volver a la pantalla de inicio."""
         if not self.game_over:
             reply = QMessageBox.question(
                 self,
