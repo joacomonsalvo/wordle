@@ -1,8 +1,8 @@
 # Wordle
 
-[![Ver video demostrativo](https://img.youtube.com/vi/VIDEO_ID/0.jpg)](https://www.youtube.com/watch?v=VIDEO_ID)
+[![Ver video demostrativo](https://img.youtube.com/vi/IbtjQq47RCM/0.jpg)](https://youtu.be/IbtjQq47RCM)
 
-*Haz clic en la imagen para ver el video demostrativo (reemplazar VIDEO_ID con el ID de tu video de YouTube)*
+*Haz clic en la imagen para ver el video demostrativo*
 
 ## 🎮 ¿Qué es Wordle?
 
