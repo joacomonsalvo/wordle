@@ -9,7 +9,6 @@ from PyQt6.QtGui import QFont
 from database.supabase_client import get_all_statistics, sign_out
 from ui.styles import create_styled_button
 
-
 import csv
 from PyQt6.QtWidgets import QFileDialog
 
@@ -29,7 +28,8 @@ class AdminWindow(QWidget):
         main_layout = QVBoxLayout(self)
 
         self.logout_button = create_styled_button("Log Out", is_primary=False)
-        self.logout_button.setStyleSheet("background-color: rgb(68,165,126); color: white; border: none; padding:6px 12px; border-radius:5px;")
+        self.logout_button.setStyleSheet(
+            "background-color: rgb(68,165,126); color: white; border: none; padding:6px 12px; border-radius:5px;")
         self.logout_button.setCursor(Qt.CursorShape.PointingHandCursor)
         self.logout_button.clicked.connect(self.handle_logout)
         main_layout.setContentsMargins(20, 20, 20, 20)
@@ -75,10 +75,12 @@ class AdminWindow(QWidget):
         self.setup_history_table()
         action_layout = QHBoxLayout()
         export_btn = create_styled_button("Exportar CSV", is_primary=False)
-        export_btn.setStyleSheet("background-color: rgb(68,165,126); color: white; border: none; padding:6px 12px; border-radius:5px;")
+        export_btn.setStyleSheet(
+            "background-color: rgb(68,165,126); color: white; border: none; padding:6px 12px; border-radius:5px;")
         export_btn.clicked.connect(self.export_csv)
         link_btn = create_styled_button("Copiar enlace Looker", is_primary=False)
-        link_btn.setStyleSheet("background-color: rgb(68,165,126); color: white; border: none; padding:6px 12px; border-radius:5px;")
+        link_btn.setStyleSheet(
+            "background-color: rgb(68,165,126); color: white; border: none; padding:6px 12px; border-radius:5px;")
         link_btn.clicked.connect(self.copy_looker_link)
         action_layout.addWidget(export_btn)
         action_layout.addWidget(link_btn)
@@ -96,13 +98,13 @@ class AdminWindow(QWidget):
     def handle_logout(self):
         try:
             sign_out()
-            
+
             from ui.login import LoginWindow
-            
+
             self.login_window = LoginWindow()
             self.hide()
             self.login_window.show()
-            
+
         except Exception as e:
             print(f"Error al cerrar sesión: {e}")
 
@@ -178,7 +180,6 @@ class AdminWindow(QWidget):
             hints_item = QTableWidgetItem(str(game.get("hints_used", 0)))
             self.history_table.setItem(row, 6, hints_item)
 
-
     def export_csv(self):
         path, _ = QFileDialog.getSaveFileName(self, "Guardar CSV", "estadisticas.csv", "CSV Files (*.csv)")
         if not path:
@@ -205,7 +206,6 @@ class AdminWindow(QWidget):
         link = "https://lookerstudio.google.com/reporting/c9bd8a99-7a40-4fe3-a038-e5a08e87f2ee"
         QApplication.clipboard().setText(link)
 
-
     def create_stat_widget(self, title: str, value: str) -> QWidget:
         widget = QWidget()
         layout = QVBoxLayout()
@@ -228,14 +228,15 @@ class AdminWindow(QWidget):
         self.history_table.setColumnCount(len(headers))
         self.history_table.setHorizontalHeaderLabels(headers)
         self.history_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-        self.history_table.setMinimumHeight(330) 
+        self.history_table.setMinimumHeight(330)
 
         return
 
 
 if __name__ == "__main__":
     import sys
+
     app = QApplication(sys.argv)
-    window = AdminWindow(1) 
+    window = AdminWindow(1)
     window.show()
     sys.exit(app.exec())

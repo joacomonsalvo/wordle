@@ -82,7 +82,6 @@ class LoginWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Wordle")
         self.setMinimumSize(700, 700)
-        
 
         screen = QApplication.primaryScreen().geometry()
         self.move(int((screen.width() - self.width()) / 2),

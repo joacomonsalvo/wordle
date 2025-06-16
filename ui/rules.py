@@ -16,7 +16,6 @@ class RulesWindow(QMainWindow):
 
         self.setWindowTitle("Wordle - Reglas")
         self.setMinimumSize(700, 700)
-        
 
         screen = QApplication.primaryScreen().geometry()
         self.move(int((screen.width() - self.width()) / 2),
@@ -42,7 +41,7 @@ class RulesWindow(QMainWindow):
         main_widget.setLayout(main_layout)
         self.setCentralWidget(main_widget)
 
-        title_label = QLabel("How to Play Wordle" if self.language!="spanish" else "Cómo jugar al Wordle")
+        title_label = QLabel("How to Play Wordle" if self.language != "spanish" else "Cómo jugar al Wordle")
         title_label.setFont(QFont("Arial", 26, QFont.Weight.Bold))
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_label.setStyleSheet("color: rgb(68,165,126);")
@@ -61,8 +60,9 @@ class RulesWindow(QMainWindow):
         scroll_area.setWidget(scroll_content)
         main_layout.addWidget(scroll_area)
 
-        continue_btn = create_styled_button("Let's Play!" if self.language!="spanish" else "Jugar!")
-        continue_btn.setStyleSheet("QPushButton{background-color: rgb(68,165,126); color: white; padding:10px 18px; border:none; border-radius:6px; font-size:16px;} QPushButton:hover{background-color: rgb(58,145,110);}")
+        continue_btn = create_styled_button("Let's Play!" if self.language != "spanish" else "Jugar!")
+        continue_btn.setStyleSheet(
+            "QPushButton{background-color: rgb(68,165,126); color: white; padding:10px 18px; border:none; border-radius:6px; font-size:16px;} QPushButton:hover{background-color: rgb(58,145,110);}")
         continue_btn.setMinimumWidth(200)
         continue_btn.clicked.connect(self.proceed_to_home)
         main_layout.addWidget(continue_btn, alignment=Qt.AlignmentFlag.AlignCenter)
@@ -91,7 +91,7 @@ class RulesWindow(QMainWindow):
             if size <= 14:
                 text = f"&#8226; {text}"
             label = QLabel(text)
-            label.setFont(QFont("Arial", size+2))
+            label.setFont(QFont("Arial", size + 2))
             label.setWordWrap(True)
             label.setTextFormat(Qt.TextFormat.RichText)
             layout.addWidget(label)
@@ -123,7 +123,7 @@ class RulesWindow(QMainWindow):
             if size <= 14:
                 text = f"&#8226; {text}"
             label = QLabel(text)
-            label.setFont(QFont("Arial", size+2))
+            label.setFont(QFont("Arial", size + 2))
             label.setWordWrap(True)
             label.setTextFormat(Qt.TextFormat.RichText)
             layout.addWidget(label)

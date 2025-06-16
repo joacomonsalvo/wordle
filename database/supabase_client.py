@@ -66,7 +66,7 @@ def sign_up(username: str, password: str, email: str = None) -> dict:
 
 def hash_password(password: str) -> str:
     """Hashear una contraseña usando SHA-256 con una sal."""
-    salt = "wordle_salt" 
+    salt = "wordle_salt"
     return hashlib.sha256(f"{password}{salt}".encode()).hexdigest()
 
 
@@ -104,7 +104,6 @@ def sign_out() -> None:
 def sign_in(username: str, password: str) -> dict:
     """Iniciar sesión de un usuario existente."""
     client = get_supabase_client()
-
 
     user_result = client.table("usuarios").select("id, nombre_usuario, contrasena, email, tipo_usuario_id").eq(
         "nombre_usuario", username).execute()
@@ -183,7 +182,7 @@ def save_game_result(user_id: int, word: str, language: str, attempts: int, time
     try:
         if not user_id or not word or not language:
             raise ValueError("Faltan parámetros")
-            
+
         client = get_supabase_client()
         if not client:
             raise Exception("Error al Inicializar el Cliente de Supabase")
@@ -199,10 +198,10 @@ def save_game_result(user_id: int, word: str, language: str, attempts: int, time
                     "palabra": word.lower(),
                     "idioma_id": idioma_id
                 }).execute()
-                
+
                 if not result.data:
                     raise Exception("Error al insertar la palabra en la tabla 'palabras'")
-                    
+
                 palabra_id = result.data[0]["id"]
             except Exception as e:
                 print(f"Error al insertar la palabra en la tabla 'palabras': {str(e)}")
@@ -222,9 +221,9 @@ def save_game_result(user_id: int, word: str, language: str, attempts: int, time
 
         if not result.data or len(result.data) == 0:
             raise ValueError("Error al guardar el resultado del juego en la tabla 'partidas'")
-            
+
         return result.data[0]
-        
+
     except Exception as e:
         print(f"Error al guardar el resultado del juego en la tabla 'partidas': {str(e)}")
         raise
@@ -404,10 +403,10 @@ def get_words_for_game(language_name: str, word_length: int = 5):
             raise ValueError(f"Idioma Invalido: {language_name}")
 
         result = client.table("palabras").select("palabra").eq("idioma_id", idioma_id).execute()
-        
+
         if not result.data:
             raise Exception("No data returned from database")
-            
+
         words = [item["palabra"].upper() for item in result.data if len(item["palabra"]) == word_length]
 
         if not words and result.data:
@@ -415,7 +414,7 @@ def get_words_for_game(language_name: str, word_length: int = 5):
 
         if not words:
             default_words = ["HELLO", "WORLD", "PYTHON", "JAZZY", "QUICK"] if language_name == "english" else \
-                          ["HOLA", "MUNDO", "PYTHON", "JAZZ", "RAPID"]
+                ["HOLA", "MUNDO", "PYTHON", "JAZZ", "RAPID"]
             return default_words
 
         return words
@@ -423,4 +422,4 @@ def get_words_for_game(language_name: str, word_length: int = 5):
         print(f"Error al obtener las palabras para el juego: {str(e)}")
         # Return default words in case of any error
         return ["HELLO", "WORLD", "PYTHON", "JAZZY", "QUICK"] if language_name == "english" else \
-               ["HOLA", "MUNDO", "PYTHON", "JAZZ", "RAPID"]
+            ["HOLA", "MUNDO", "PYTHON", "JAZZ", "RAPID"]

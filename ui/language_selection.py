@@ -8,17 +8,17 @@ from ui.rules import RulesWindow
 
 class LanguageSelectionWindow(QMainWindow):
     """Ventana para seleccionar el idioma de la aplicación."""
-    
+
     def __init__(self, user_id, is_admin):
         super().__init__()
         self.user_id = user_id
         self.is_admin = is_admin
         self.selected_language = "spanish"
-        
+
         self.setWindowTitle("Wordle - Seleccionar Idioma")
         self.setMinimumSize(700, 700)
         self.setup_ui()
-        
+
     def setup_ui(self):
         main_widget = QWidget()
         main_layout = QVBoxLayout()
@@ -79,10 +79,9 @@ class LanguageSelectionWindow(QMainWindow):
 
         main_layout.addWidget(selection_container)
 
-        
     def on_language_changed(self, index):
         self.selected_language = self.language_combo.itemData(index)
-        
+
     def proceed_to_rules(self):
         self.rules_window = RulesWindow(self.user_id, self.is_admin, self.selected_language)
         self.hide()
