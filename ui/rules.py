@@ -91,9 +91,7 @@ class RulesWindow(QMainWindow):
              "L - The letter D is not in the word in any spot.", 12),
             ("<b>Hints:</b>", 14),
             ("You have 3 hints available per game:", 12),
-            ("1. Reveal a random correct letter", 12),
-            ("2. Eliminate wrong letters from the keyboard", 12),
-            ("3. Get a clue about the word's meaning", 12)
+            ("Each of them will reveal a random correct letter", 12),
         ]
 
         for text, size in rules:
@@ -126,9 +124,7 @@ class RulesWindow(QMainWindow):
              "B - La letra A no está en la palabra en ningún lugar.", 12),
             ("<b>Pistas:</b>", 14),
             ("Tienes 3 pistas disponibles por juego:", 12),
-            ("1. Revelar una letra correcta aleatoria", 12),
-            ("2. Eliminar letras incorrectas del teclado", 12),
-            ("3. Obtener una pista sobre el significado de la palabra", 12)
+            ("Cada una de ellas revelara una letra correcta aleatoria", 12),
         ]
 
         for text, size in rules:
